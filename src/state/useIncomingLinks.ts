@@ -20,6 +20,7 @@ export function useIncomingLinks(enabled: boolean) {
   const sheet = useSheet();
   const categories = useCategories();
   const queue = useRef<Incoming[]>([]);
+  const handled = useRef(new Set<string>());
   const handlerRef = useRef<(item: Incoming) => void>(() => {});
   const enabledRef = useRef(enabled);
 
@@ -59,6 +60,10 @@ export function useIncomingLinks(enabled: boolean) {
   }, [actions, categories, open, sheet]);
 
   const receive = useCallback((item: Incoming) => {
+    if (item.type === 'notification') {
+      if (handled.current.has(item.response.key)) return;
+      handled.current.add(item.response.key);
+    }
     if (enabledRef.current) handlerRef.current(item);
     else queue.current.push(item);
   }, []);

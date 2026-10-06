@@ -115,6 +115,38 @@ describe('recordatorios y links', () => {
     expect(mocked.scheduleNotificationAsync).not.toHaveBeenCalled();
   });
 
+  it('si se apagaron las notificaciones en iOS, Ajustes lo avisa y no programa nada', async () => {
+    await AsyncStorage.setItem(PREFERENCES_KEY, JSON.stringify({ reminders: { fixed: true } }));
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(withPendingFixed));
+    mocked.getPermissionsAsync.mockResolvedValue({ status: 'denied' } as never);
+    await render(<App />);
+    await press(await screen.findByLabelText('Ajustes'));
+    expect(await screen.findByText('Las notificaciones están apagadas')).toBeTruthy();
+    await waitFor(() => expect(mocked.cancelAllScheduledNotificationsAsync).toHaveBeenCalled(), { timeout: 3000 });
+    expect(mocked.scheduleNotificationAsync).not.toHaveBeenCalled();
+  });
+
+  it('la misma respuesta repetida no registra el fijo dos veces', async () => {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(withPendingFixed));
+    await render(<App />);
+    await screen.findByText(/sin registrar en octubre/);
+    const response = {
+      actionIdentifier: 'register',
+      notification: {
+        date: 1,
+        request: { identifier: 'fixed-2026-10-05', content: { data: { kind: 'fixed', month: '2026-10' } } },
+      },
+    };
+    await act(async () => {
+      mocked.__emit(response);
+      mocked.__emit(response);
+    });
+    await waitFor(async () => {
+      const stored = JSON.parse((await AsyncStorage.getItem(STORAGE_KEY)) ?? '{}');
+      expect(stored.expenses).toHaveLength(1);
+    });
+  });
+
   it('"Registrar" en la notificación registra el fijo y abre Fijos', async () => {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(withPendingFixed));
     await render(<App />);

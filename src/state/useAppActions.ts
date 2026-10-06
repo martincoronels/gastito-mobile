@@ -10,8 +10,9 @@ import type { AppData, Category } from '@/domain/types';
 import { currentMonth, monthName, monthOf, shiftMonth, today, type MonthKey } from '@/lib/dates';
 import { haptics } from '@/lib/haptics';
 import { money } from '@/lib/money';
+import { clearExports } from '@/services/backup';
 import { requestReview, shouldAskForReview } from '@/services/review';
-import { useAppDispatch, useAppState } from './AppStateProvider';
+import { useAppDispatch, useAppState, useRepository } from './AppStateProvider';
 import { usePreferences } from './PreferencesProvider';
 import type { AppAction, ViewId } from './reducer';
 import { useCategories } from './useCategories';
@@ -38,6 +39,7 @@ const monthTotal = (data: AppData, month: MonthKey) => sumOf(expensesInMonth(dat
 export function useAppActions() {
   const { data, ui } = useAppState();
   const dispatch = useAppDispatch();
+  const repository = useRepository();
   const toast = useToast();
   const categories = useCategories();
   const { prefs, update: updatePrefs } = usePreferences();
@@ -190,6 +192,9 @@ export function useAppActions() {
       wipeAll() {
         const snapshot = data;
         commit(ops.emptyData(), { animate: true, ui: { month: currentMonth(), filter: ALL_FILTER, selected: null } });
+        // "todo" es todo: también la copia de recuperación y los archivos exportados que quedaron
+        void repository.discardPreserved();
+        clearExports();
         haptics.warning();
         toast('Listo, arrancás de cero', {
           // solo si no se cargó nada nuevo mientras tanto (no se pisa lo nuevo)
@@ -224,7 +229,7 @@ export function useAppActions() {
         return true;
       },
     };
-  }, [data, ui.month, ui.filter, ui.selected, dispatch, toast, categories, usage, updatePrefs]);
+  }, [data, ui.month, ui.filter, ui.selected, dispatch, repository, toast, categories, usage, updatePrefs]);
 }
 
 export type AppActions = ReturnType<typeof useAppActions>;

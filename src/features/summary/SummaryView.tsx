@@ -8,7 +8,7 @@ import { useGridColumns } from '@/components/ui/grid';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { Tile } from '@/components/ui/Tile';
 import { buildSlices } from '@/domain/donut';
-import { lastMonths, monthSummary, unregisteredFixed } from '@/domain/selectors';
+import { averageOf, lastMonths, monthSummary, unregisteredFixed } from '@/domain/selectors';
 import type { AppData } from '@/domain/types';
 import { monthName, shiftMonth } from '@/lib/dates';
 import { haptics } from '@/lib/haptics';
@@ -181,7 +181,7 @@ export function SummaryView() {
       </View>
 
       <View style={styles.section}>
-        <SectionHeader title="Últimos 6 meses" side={`promedio ${money(trend.reduce((a, m) => a + m.sum, 0) / 6)}`} />
+        <SectionHeader title="Últimos 6 meses" side={`promedio ${money(averageOf(trend))}`} />
         <TrendChart
           months={trend}
           selected={ui.month}

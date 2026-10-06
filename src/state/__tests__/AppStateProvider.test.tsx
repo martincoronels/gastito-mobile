@@ -18,6 +18,9 @@ function fakeRepository(results: LoadResult[]) {
     preserve: jest.fn(async (raw: string) => {
       preserved.push(raw);
     }),
+    discardPreserved: jest.fn(async () => {
+      preserved.length = 0;
+    }),
   };
   return { repository, saved, preserved };
 }

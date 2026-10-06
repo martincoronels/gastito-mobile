@@ -133,6 +133,18 @@ export function lastMonths(data: AppData, month: MonthKey, count = 6): { month: 
   return out;
 }
 
+/** Para buscar sin importar mayúsculas ni tildes: "Café" → "cafe". */
+export function fold(text: string): string {
+  const lower = text.toLowerCase();
+  return typeof lower.normalize === 'function' ? lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '') : lower;
+}
+
+/** Promedio de los meses que tienen gastos (los meses vacíos, antes de empezar a usar la app, no cuentan). */
+export function averageOf(months: readonly { sum: number }[]): number {
+  const withData = months.filter((m) => m.sum > 0);
+  return withData.length ? withData.reduce((acc, m) => acc + m.sum, 0) / withData.length : 0;
+}
+
 /** Filtra por categoría y búsqueda, y ordena del más nuevo al más viejo. */
 export function filterMovements(
   list: readonly Expense[],
@@ -141,11 +153,9 @@ export function filterMovements(
   categoryName: (id: string) => string,
 ): Expense[] {
   let out = filter === ALL_FILTER ? [...list] : list.filter((e) => e.categoryId === filter);
-  const q = query.trim().toLowerCase();
+  const q = fold(query.trim());
   if (q) {
-    out = out.filter(
-      (e) => (e.note || '').toLowerCase().includes(q) || categoryName(e.categoryId).toLowerCase().includes(q),
-    );
+    out = out.filter((e) => fold(e.note || '').includes(q) || fold(categoryName(e.categoryId)).includes(q));
   }
   return out.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : (b.createdAt || 0) - (a.createdAt || 0)));
 }

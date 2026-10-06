@@ -1,13 +1,15 @@
 import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
-import { Alert, Platform, Pressable, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, AppState, Platform, Pressable, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { formatTime, type ReminderPreferences } from '@/domain/preferences';
+import { anyReminderOn } from '@/domain/reminders';
 import { haptics } from '@/lib/haptics';
-import { getPermission, openSystemSettings, requestPermission } from '@/services/notifications';
+import { getPermission, openSystemSettings, requestPermission, type PermissionState } from '@/services/notifications';
 import { usePreferences } from '@/state/PreferencesProvider';
 import { makeStyles, useTheme } from '@/theme';
-import { SettingsSection, SettingsSwitchRow } from './SettingsList';
+import { SettingsRow, SettingsSection, SettingsSwitchRow } from './SettingsList';
 
 type ReminderKey = 'fixed' | 'daily' | 'monthly';
 
@@ -21,6 +23,9 @@ export function ReminderSettings() {
   const { prefs, update } = usePreferences();
   const { reminders } = prefs;
   const styles = useStyles();
+  const permission = usePermission();
+  // los recordatorios están prendidos en la app, pero iOS no deja mostrarlos
+  const blocked = anyReminderOn(reminders) && permission === 'denied';
 
   const set = (patch: Partial<ReminderPreferences>) =>
     update((p) => ({ ...p, reminders: { ...p.reminders, ...patch } }));
@@ -53,6 +58,15 @@ export function ReminderSettings() {
       title="Recordatorios"
       footer="Los avisos los arma tu iPhone: no pasan por ningún servidor. Si activás el bloqueo, no muestran montos."
     >
+      {blocked ? (
+        <SettingsRow
+          icon="bell"
+          tint={TINT.fixed}
+          title="Las notificaciones están apagadas"
+          detail="Activalas en Ajustes de iOS → Gastito para recibir los recordatorios"
+          onPress={() => void openSystemSettings()}
+        />
+      ) : null}
       <SettingsSwitchRow
         icon="repeat"
         tint={TINT.fixed}
@@ -85,6 +99,22 @@ export function ReminderSettings() {
       />
     </SettingsSection>
   );
+}
+
+/** El permiso de notificaciones, actualizado al volver a la app (por si se cambió en Ajustes de iOS). */
+function usePermission(): PermissionState | null {
+  const [state, setState] = useState<PermissionState | null>(null);
+  useEffect(() => {
+    let active = true;
+    const read = () => void getPermission().then((next) => active && setState(next));
+    read();
+    const sub = AppState.addEventListener('change', (status) => status === 'active' && read());
+    return () => {
+      active = false;
+      sub.remove();
+    };
+  }, []);
+  return state;
 }
 
 /** El selector de hora nativo: en iOS, la píldora compacta que abre la ruedita. */

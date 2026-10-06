@@ -18,10 +18,12 @@ import {
 } from '../operations';
 import { sanitizeData } from '../sanitize';
 import {
+  averageOf,
   budgetAlert,
   filterMovements,
   groupByDay,
   impactMessage,
+  lastMonths,
   monthSummary,
   pendingFixed,
   totalsByCategory,
@@ -356,5 +358,41 @@ describe('backups', () => {
     const csv = monthCsv(d, '2026-10', nameOf);
     expect(csv.startsWith('\uFEFF"fecha","categoria"')).toBe(true);
     expect(csv).toContain(`"'=SUMA(A1)"`);
+  });
+});
+
+describe('correcciones', () => {
+  it('al destildar "se repite" en un gasto, los meses anteriores dejan de apuntar al fijo borrado', () => {
+    const draft = { amount: 100, categoryId: 'subs', note: 'Gym', date: '2026-09-07', method: 'Crédito' as const };
+    const first = saveExpense(emptyData(), { ...draft, repeat: true }, null, 1, nextId);
+    const ruleId = first.data.recurring[0].id;
+    const october = {
+      ...first.data,
+      expenses: [...first.data.expenses, expense({ date: '2026-10-07', recurringId: ruleId })],
+    };
+    const edited = saveExpense(
+      october,
+      { ...draft, date: '2026-10-07', repeat: false },
+      october.expenses[1].id,
+      2,
+      nextId,
+    );
+    expect(edited.data.recurring).toHaveLength(0);
+    expect(edited.data.expenses.every((e) => e.recurringId === null)).toBe(true);
+  });
+
+  it('la búsqueda ignora tildes y mayúsculas', () => {
+    const list = [expense({ note: 'Café en Palermo' }), expense({ note: 'Panadería' })];
+    expect(filterMovements(list, 'todas', 'cafe', nameOf)).toHaveLength(1);
+    expect(filterMovements(list, 'todas', 'PANADERIA', nameOf)).toHaveLength(1);
+    expect(filterMovements(list, 'todas', 'categoría', () => 'Categoria')).toHaveLength(2);
+  });
+
+  it('el promedio de los últimos meses no cuenta los meses vacíos', () => {
+    const d = data({
+      expenses: [expense({ date: '2026-10-01', amount: 3000 }), expense({ date: '2026-09-01', amount: 1000 })],
+    });
+    expect(averageOf(lastMonths(d, '2026-10'))).toBe(2000);
+    expect(averageOf(lastMonths(emptyData(), '2026-10'))).toBe(0);
   });
 });

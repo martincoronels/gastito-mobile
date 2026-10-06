@@ -20,4 +20,6 @@ export interface DataRepository {
   save(data: AppData): Promise<boolean>;
   /** Guarda aparte algo que no se pudo interpretar, para no perderlo al guardar encima. */
   preserve(raw: string): Promise<void>;
+  /** Borra esa copia aparte (cuando la persona borra todo). */
+  discardPreserved(): Promise<void>;
 }

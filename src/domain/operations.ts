@@ -67,14 +67,17 @@ export function saveExpense(
 
   if (current) {
     let recurring = data.recurring;
+    let expenses = data.expenses;
     let recurringId = current.recurringId;
     if (repeat && !recurringId) {
       const rule = newRule();
       recurring = [...recurring, rule];
       recurringId = rule.id;
     } else if (!repeat && recurringId) {
+      // se borra el fijo, como en deleteFixed: los gastos que ya generó quedan, pero sueltos
       const ruleId = recurringId;
       recurring = recurring.filter((r) => r.id !== ruleId);
+      expenses = expenses.map((e) => (e.recurringId === ruleId ? { ...e, recurringId: null } : e));
       recurringId = null;
     } else if (repeat && recurringId) {
       const ruleId = recurringId;
@@ -84,7 +87,7 @@ export function saveExpense(
     }
     const expense: Expense = { ...current, amount, categoryId, note, date, method, recurringId };
     return {
-      data: { ...data, recurring, expenses: data.expenses.map((e) => (e.id === current.id ? expense : e)) },
+      data: { ...data, recurring, expenses: expenses.map((e) => (e.id === current.id ? expense : e)) },
       expense,
       created: false,
     };

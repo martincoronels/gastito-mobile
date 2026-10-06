@@ -31,7 +31,13 @@ export function MovementsView() {
   const categories = useCategories();
 
   const inMonth = useMemo(() => expensesInMonth(data, ui.month), [data, ui.month]);
-  const chips = useMemo(() => totalsByCategory(inMonth).map((t) => categories.get(t.id)), [inMonth, categories]);
+  const chips = useMemo(() => {
+    const list = totalsByCategory(inMonth).map((t) => categories.get(t.id));
+    // la categoría filtrada siempre tiene su chip, aunque en este mes no tenga gastos
+    // (si no, el filtro quedaba puesto pero invisible y la lista, vacía sin explicación)
+    if (ui.filter !== ALL_FILTER && !list.some((c) => c.id === ui.filter)) list.unshift(categories.get(ui.filter));
+    return list;
+  }, [inMonth, categories, ui.filter]);
   const results = useMemo(
     () => filterMovements(inMonth, ui.filter, ui.query, (id) => categories.get(id).name),
     [inMonth, ui.filter, ui.query, categories],

@@ -35,4 +35,11 @@ export const asyncStorageRepository: DataRepository = {
       // si tampoco se puede guardar la copia, no hay nada más que hacer
     }
   },
+  async discardPreserved() {
+    try {
+      await AsyncStorage.removeItem(RECOVERY_KEY);
+    } catch {
+      // si no estaba, no hay nada que borrar
+    }
+  },
 };

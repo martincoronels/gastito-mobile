@@ -78,10 +78,9 @@ const useStyles = makeStyles((c) => ({
     textAlign: 'center',
     letterSpacing: -0.17,
   },
+  // en la misma fila (no flotando a la derecha): en pantallas de 375 pt pisaba la flecha
   today: {
-    position: 'absolute',
-    right: 0,
-    top: 8,
+    marginLeft: 4,
     height: 30,
     paddingHorizontal: 12,
     borderRadius: 999,

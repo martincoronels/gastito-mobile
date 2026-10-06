@@ -18,6 +18,7 @@ import { usePersistence } from './usePersistence';
 const StateContext = createContext<AppState | null>(null);
 const DispatchContext = createContext<Dispatch<AppAction> | null>(null);
 const RetryContext = createContext<() => void>(() => {});
+const RepositoryContext = createContext<DataRepository | null>(null);
 
 interface AppStateProviderProps {
   repository: DataRepository;
@@ -72,11 +73,13 @@ export function AppStateProvider({ repository, onSaveError, children }: AppState
   usePersistence(state.status === 'ready' ? state.data : null, repository, onSaveError);
 
   return (
-    <DispatchContext value={dispatch}>
-      <RetryContext value={retry}>
-        <StateContext value={state}>{children}</StateContext>
-      </RetryContext>
-    </DispatchContext>
+    <RepositoryContext value={repository}>
+      <DispatchContext value={dispatch}>
+        <RetryContext value={retry}>
+          <StateContext value={state}>{children}</StateContext>
+        </RetryContext>
+      </DispatchContext>
+    </RepositoryContext>
   );
 }
 
@@ -94,3 +97,10 @@ export function useAppDispatch(): Dispatch<AppAction> {
 
 /** Vuelve a intentar leer los datos (cuando la primera lectura falló). */
 export const useRetryLoad = () => useContext(RetryContext);
+
+/** Dónde se guardan los datos (para lo que no pasa por el estado, como borrar la copia de recuperación). */
+export function useRepository(): DataRepository {
+  const repository = useContext(RepositoryContext);
+  if (!repository) throw new Error('useRepository tiene que usarse dentro de <AppStateProvider>');
+  return repository;
+}

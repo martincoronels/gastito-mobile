@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react-native';
 import { Alert, type AlertButton } from 'react-native';
 
-import { STORAGE_KEY } from '@/config';
+import { RECOVERY_KEY, STORAGE_KEY } from '@/config';
 import App from '../App';
 
 /** 20 de octubre de 2026: el mes de ejemplo trae todos sus gastos del mes. */
@@ -131,13 +131,15 @@ describe('la app completa', () => {
     expect(await screen.findByText('Te pasaste del presupuesto de octubre por $\u00a09.700')).toBeTruthy();
   });
 
-  it('borrar todo pide confirmación y se puede deshacer', async () => {
+  it('borrar todo pide confirmación, borra también la copia de recuperación y se puede deshacer', async () => {
+    await AsyncStorage.setItem(RECOVERY_KEY, '{"datos viejos dañados"');
     await startWithDemo();
     answerAlerts('Borrar todo');
     await press(screen.getByLabelText('Ajustes'));
     await press(await screen.findByLabelText('Borrar todo'));
     expect(await screen.findByText('Listo, arrancás de cero')).toBeTruthy();
     expect(await screen.findByText('Empecemos por el primero')).toBeTruthy();
+    await waitFor(async () => expect(await AsyncStorage.getItem(RECOVERY_KEY)).toBeNull());
 
     await press(screen.getByText('Deshacer'));
     expect(await screen.findByText('Gastaste')).toBeTruthy();

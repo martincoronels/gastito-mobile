@@ -93,6 +93,8 @@ const urlFor = (reminder: PlannedReminder) =>
       : 'gastito://anotar';
 
 export interface ReminderResponse {
+  /** Identifica esta respuesta (la misma puede llegar dos veces al abrir la app desde el aviso) */
+  key: string;
   /** Se tocó "Registrar" en un aviso de fijos */
   register: boolean;
   url: string | null;
@@ -104,5 +106,6 @@ export function readResponse(response: Notifications.NotificationResponse): Remi
   const data = response.notification.request.content.data ?? {};
   const url = typeof data.url === 'string' ? data.url : null;
   const month = typeof data.month === 'string' && /^\d{4}-\d{2}$/.test(data.month) ? data.month : null;
-  return { register: response.actionIdentifier === REGISTER_ACTION, url, month };
+  const key = `${response.notification.request.identifier ?? ''}:${response.notification.date ?? ''}:${response.actionIdentifier}`;
+  return { key, register: response.actionIdentifier === REGISTER_ACTION, url, month };
 }
