@@ -7,7 +7,7 @@ import { AppText } from '@/components/ui/AppText';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/icons';
 import type { ViewId } from '@/state/reducer';
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 
 /** Resumen va al medio: es la pantalla principal de la app. */
 const TABS: readonly { id: ViewId; label: string; icon: IconName }[] = [
@@ -18,9 +18,11 @@ const TABS: readonly { id: ViewId; label: string; icon: IconName }[] = [
 
 export function BottomNav({ current, onChange }: { current: ViewId; onChange: (view: ViewId) => void }) {
   const insets = useSafeAreaInsets();
+  const { scheme } = useTheme();
+  const styles = useStyles();
   return (
     <View style={[styles.root, { paddingBottom: insets.bottom }]} accessibilityRole="tablist">
-      <BlurView intensity={40} tint="light" style={StyleSheet.absoluteFill} />
+      <BlurView intensity={40} tint={scheme} style={StyleSheet.absoluteFill} />
       <View style={[StyleSheet.absoluteFill, styles.glass]} />
       {TABS.map((tab) => (
         <NavButton
@@ -46,6 +48,8 @@ function NavButton({
   active: boolean;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const scale = useSharedValue(1);
   const iconStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.get() }] }));
   const color = active ? colors.ink : colors.ink3;
@@ -67,7 +71,7 @@ function NavButton({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   root: {
     position: 'absolute',
     left: 0,
@@ -75,13 +79,13 @@ const styles = StyleSheet.create({
     bottom: 0,
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderTopColor: colors.line,
+    borderTopColor: c.line,
     overflow: 'hidden',
   },
-  glass: { backgroundColor: colors.navGlass },
+  glass: { backgroundColor: c.navGlass },
   button: { flex: 1, alignItems: 'center', gap: 2, paddingTop: 7, paddingBottom: 8 },
   icon: { width: 52, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  iconActive: { backgroundColor: colors.navActive },
+  iconActive: { backgroundColor: c.navActive },
   label: { fontSize: 11, lineHeight: 15.95 },
   labelActive: { fontWeight: '600' },
-});
+}));

@@ -1,9 +1,9 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
-import { colors } from '@/theme';
+import { makeStyles } from '@/theme';
 
 interface State {
   error: Error | null;
@@ -18,30 +18,36 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
+    // solo queda en la consola del dispositivo: Gastito no manda reportes a ningún servidor
     console.error('Gastito: error inesperado', error, info.componentStack);
   }
 
   render() {
     if (!this.state.error) return this.props.children;
-    return (
-      <View style={styles.root}>
-        <AppText style={styles.title}>Algo salió mal</AppText>
-        <AppText style={styles.text}>Tus datos siguen guardados en el teléfono. Probá de nuevo.</AppText>
-        <Button label="Reintentar" onPress={() => this.setState({ error: null })} />
-      </View>
-    );
+    return <ErrorFallback onRetry={() => this.setState({ error: null })} />;
   }
 }
 
-const styles = StyleSheet.create({
+function ErrorFallback({ onRetry }: { onRetry: () => void }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.root} accessibilityRole="alert">
+      <AppText style={styles.title}>Algo salió mal</AppText>
+      <AppText style={styles.text}>Tus datos siguen guardados en el teléfono. Probá de nuevo.</AppText>
+      <Button label="Reintentar" onPress={onRetry} />
+    </View>
+  );
+}
+
+const useStyles = makeStyles((c) => ({
   root: {
     flex: 1,
-    backgroundColor: colors.canvas,
+    backgroundColor: c.canvas,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 32,
     gap: 12,
   },
   title: { fontSize: 19, fontWeight: '600' },
-  text: { fontSize: 14.5, lineHeight: 21, color: colors.ink2, textAlign: 'center', marginBottom: 8 },
-});
+  text: { fontSize: 14.5, lineHeight: 21, color: c.ink2, textAlign: 'center', marginBottom: 8 },
+}));

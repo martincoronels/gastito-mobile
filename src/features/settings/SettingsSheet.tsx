@@ -1,6 +1,6 @@
 import * as WebBrowser from 'expo-web-browser';
 import { useRef, useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, View, type TextInput } from 'react-native';
+import { Pressable, View, type TextInput } from 'react-native';
 
 import { CategoryChip } from '@/components/CategoryChip';
 import { useToast } from '@/components/feedback/ToastProvider';
@@ -9,25 +9,37 @@ import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
 import { FieldLabel } from '@/components/ui/FieldLabel';
 import { Icon } from '@/components/ui/Icon';
+import { Segmented } from '@/components/ui/Segmented';
 import { TextField } from '@/components/ui/TextField';
 import { PRIVACY_POLICY_URL } from '@/config';
 import { monthCsv } from '@/domain/csv';
+import type { AppearancePreference } from '@/domain/preferences';
 import { today } from '@/lib/dates';
 import { exportBackup, exportMonthCsv, pickBackup } from '@/services/backup';
 import { useAppState } from '@/state/AppStateProvider';
+import { usePreferences } from '@/state/PreferencesProvider';
 import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { useCategories } from '@/state/useCategories';
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
+
+const APPEARANCE_OPTIONS: readonly { value: AppearancePreference; label: string }[] = [
+  { value: 'system', label: 'Automática' },
+  { value: 'light', label: 'Clara' },
+  { value: 'dark', label: 'Oscura' },
+];
 
 /** Ajustes: presupuesto, backups, categorías propias, privacidad y borrar todo. */
 export function SettingsSheet() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { data, ui } = useAppState();
   const actions = useAppActions();
   const sheet = useSheet();
   const toast = useToast();
   const categories = useCategories();
   const reveal = useRevealInSheet();
+  const { prefs, update } = usePreferences();
   const budgetInput = useRef<TextInput>(null);
 
   const [budget, setBudget] = useState(data.settings.budget ? String(data.settings.budget) : '');
@@ -98,6 +110,16 @@ export function SettingsSheet() {
         />
       </View>
       <Button label="Guardar presupuesto" wide onPress={saveBudget} />
+
+      <View style={styles.appearance}>
+        <FieldLabel>Apariencia</FieldLabel>
+        <Segmented
+          accessibilityLabel="Apariencia"
+          options={APPEARANCE_OPTIONS}
+          value={prefs.appearance}
+          onChange={(appearance) => update((p) => ({ ...p, appearance }))}
+        />
+      </View>
 
       <View style={styles.rows}>
         <SettingRow
@@ -173,6 +195,7 @@ function SettingRow({
   action: ReactNode;
   last?: boolean;
 }) {
+  const styles = useStyles();
   return (
     <View style={[styles.row, !last && styles.divider]}>
       <View style={styles.rowTexts}>
@@ -184,21 +207,22 @@ function SettingRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   field: { marginBottom: 15 },
-  rows: { marginTop: 22 },
+  appearance: { marginTop: 22 },
+  rows: { marginTop: 14 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 2 },
   block: { paddingVertical: 14, paddingHorizontal: 2 },
-  divider: { borderBottomWidth: 1, borderBottomColor: colors.lineSoft },
+  divider: { borderBottomWidth: 1, borderBottomColor: c.lineSoft },
   rowTexts: { flex: 1 },
   rowTitle: { fontSize: 14.5, lineHeight: 21 },
-  rowText: { fontSize: 12.5, lineHeight: 18.1, color: colors.ink3, marginTop: 2, maxWidth: 290 },
+  rowText: { fontSize: 12.5, lineHeight: 18.1, color: c.ink3, marginTop: 2, maxWidth: 290 },
   myCategories: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 10 },
   myCategory: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    backgroundColor: colors.soft,
+    backgroundColor: c.soft,
     borderRadius: 999,
     paddingVertical: 4,
     paddingLeft: 4,
@@ -206,6 +230,6 @@ const styles = StyleSheet.create({
   },
   myCategoryName: { fontSize: 12.5 },
   remove: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  removePressed: { backgroundColor: colors.softPressed },
-  note: { fontSize: 12.5, lineHeight: 18.1, color: colors.ink3, marginTop: 14 },
-});
+  removePressed: { backgroundColor: c.softPressed },
+  note: { fontSize: 12.5, lineHeight: 18.1, color: c.ink3, marginTop: 14 },
+}));

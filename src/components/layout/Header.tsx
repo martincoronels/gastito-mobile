@@ -5,7 +5,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { Logo } from '@/components/brand/Logo';
 import { AppText } from '@/components/ui/AppText';
 import { IconButton } from '@/components/ui/IconButton';
-import { colors, fonts, HEADER_CONTENT_HEIGHT, PAD } from '@/theme';
+import { fonts, HEADER_CONTENT_HEIGHT, makeStyles, PAD, useTheme } from '@/theme';
 
 /** Alto total del encabezado, contando la zona del notch / Dynamic Island. */
 export const useHeaderHeight = () => useSafeAreaInsets().top + HEADER_CONTENT_HEIGHT;
@@ -14,6 +14,8 @@ export const useHeaderHeight = () => useSafeAreaInsets().top + HEADER_CONTENT_HE
 export function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
+  const { colors } = useTheme();
+  const styles = useStyles();
   const height = insets.top + HEADER_CONTENT_HEIGHT;
   return (
     <View style={[styles.root, { height, paddingTop: insets.top + 14 }]}>
@@ -36,7 +38,7 @@ export function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(() => ({
   root: {
     position: 'absolute',
     top: 0,
@@ -50,4 +52,4 @@ const styles = StyleSheet.create({
   },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 9, marginRight: 'auto' },
   brandText: { fontFamily: fonts.displayBold, fontSize: 21, lineHeight: 30.4, letterSpacing: -0.63 },
-});
+}));

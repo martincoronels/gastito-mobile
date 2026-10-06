@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { CategoryChip } from '@/components/CategoryChip';
 import { AppText } from '@/components/ui/AppText';
@@ -8,7 +8,7 @@ import type { CategoryTotal } from '@/domain/selectors';
 import { money } from '@/lib/money';
 import { plural } from '@/lib/text';
 import { useCategories } from '@/state/useCategories';
-import { colors, fonts, radius } from '@/theme';
+import { fonts, makeStyles, radius } from '@/theme';
 
 interface CategoryListProps {
   totals: CategoryTotal[];
@@ -19,6 +19,7 @@ interface CategoryListProps {
 }
 
 export function CategoryList({ totals, sum, slices, selected, onToggle }: CategoryListProps) {
+  const styles = useStyles();
   const categories = useCategories();
   return (
     <View style={styles.card}>
@@ -53,8 +54,8 @@ export function CategoryList({ totals, sum, slices, selected, onToggle }: Catego
   );
 }
 
-const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderRadius: radius.md, padding: 4 },
+const useStyles = makeStyles((c) => ({
+  card: { backgroundColor: c.surface, borderRadius: radius.md, padding: 4 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -63,11 +64,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 12,
   },
-  rowOn: { backgroundColor: colors.softer },
-  rowPressed: { backgroundColor: colors.soft },
+  rowOn: { backgroundColor: c.softer },
+  rowPressed: { backgroundColor: c.soft },
   texts: { flex: 1 },
   name: { fontSize: 14.5, lineHeight: 18.1, fontWeight: '500' },
-  meta: { fontSize: 12.5, lineHeight: 15, color: colors.ink3, marginTop: 3 },
+  meta: { fontSize: 12.5, lineHeight: 15, color: c.ink3, marginTop: 3 },
   numbers: { alignItems: 'flex-end' },
   amount: { fontFamily: fonts.display, fontSize: 15, lineHeight: 18.75, fontVariant: ['tabular-nums'] },
-});
+}));

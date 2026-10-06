@@ -1,14 +1,15 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { IconButton } from '@/components/ui/IconButton';
 import { currentMonth, monthTitle, shiftMonth } from '@/lib/dates';
 import { useAppState } from '@/state/AppStateProvider';
 import { useAppActions } from '@/state/useAppActions';
-import { colors, fonts } from '@/theme';
+import { fonts, makeStyles } from '@/theme';
 
 /** "‹ Octubre de 2026 ›" con el atajo "Hoy" cuando se está mirando otro mes. */
 export function MonthBar() {
+  const styles = useStyles();
   const { ui } = useAppState();
   const actions = useAppActions();
   const now = currentMonth();
@@ -47,7 +48,7 @@ export function MonthBar() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -71,9 +72,9 @@ const styles = StyleSheet.create({
     height: 30,
     paddingHorizontal: 12,
     borderRadius: 999,
-    backgroundColor: colors.ghost,
+    backgroundColor: c.ghost,
     justifyContent: 'center',
   },
-  todayPressed: { backgroundColor: colors.ghostPressed },
-  todayText: { fontSize: 12.5, fontWeight: '600', color: colors.ink2 },
-});
+  todayPressed: { backgroundColor: c.ghostPressed },
+  todayText: { fontSize: 12.5, fontWeight: '600', color: c.ink2 },
+}));

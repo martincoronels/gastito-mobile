@@ -1,12 +1,12 @@
 import * as Haptics from 'expo-haptics';
 import type { Ref } from 'react';
-import { StyleSheet, TextInput, useWindowDimensions } from 'react-native';
+import { TextInput, useWindowDimensions } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
 
 import { AppText } from '@/components/ui/AppText';
 import { nextAmountInput } from '@/lib/amountInput';
 import { clamp } from '@/lib/math';
-import { colors, fonts } from '@/theme';
+import { fonts, makeStyles, useTheme } from '@/theme';
 
 /** Ancho del "0" de Bricolage 800 en tamaño óptico grande, en em: el max-width: 9ch de la web. */
 const CH = 0.639;
@@ -19,6 +19,8 @@ interface AmountFieldProps {
 
 /** El monto grande del formulario: solo números, con puntos de miles, y rebota si entra otra cosa. */
 export function AmountField({ value, onChange, ref }: AmountFieldProps) {
+  const { colors, scheme } = useTheme();
+  const styles = useStyles();
   const { width } = useWindowDimensions();
   const fontSize = clamp(width * 0.12, 38, 52);
   const shake = useSharedValue(0);
@@ -46,6 +48,7 @@ export function AmountField({ value, onChange, ref }: AmountFieldProps) {
         value={value}
         onChangeText={handleChange}
         keyboardType="decimal-pad"
+        keyboardAppearance={scheme}
         placeholder="0"
         placeholderTextColor={colors.amountPlaceholder}
         selectionColor={colors.ink}
@@ -67,7 +70,7 @@ export function AmountField({ value, onChange, ref }: AmountFieldProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -76,6 +79,6 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 18,
   },
-  currency: { fontFamily: fonts.display, fontSize: 26, lineHeight: 37.7, color: colors.ink3 },
-  input: { fontFamily: fonts.displayHuge, color: colors.ink, textAlign: 'center', padding: 0 },
-});
+  currency: { fontFamily: fonts.display, fontSize: 26, lineHeight: 37.7, color: c.ink3 },
+  input: { fontFamily: fonts.displayHuge, color: c.ink, textAlign: 'center', padding: 0 },
+}));

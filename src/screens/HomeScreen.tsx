@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -19,10 +19,11 @@ import { SummaryView } from '@/features/summary/SummaryView';
 import { useAppState } from '@/state/AppStateProvider';
 import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
-import { colors, PAD } from '@/theme';
+import { makeStyles, PAD } from '@/theme';
 
 /** La única pantalla: encabezado, la sección activa, la barra de abajo, el botón + y las hojas. */
 export function HomeScreen() {
+  const styles = useStyles();
   const { ui } = useAppState();
   const actions = useAppActions();
   const sheet = useSheet();
@@ -72,7 +73,7 @@ export function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.canvas },
+const useStyles = makeStyles((c) => ({
+  root: { flex: 1, backgroundColor: c.canvas },
   content: { paddingHorizontal: PAD, paddingBottom: 132 },
-});
+}));

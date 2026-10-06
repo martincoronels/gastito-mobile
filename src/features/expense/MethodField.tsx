@@ -1,11 +1,11 @@
-import { ActionSheetIOS, Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { ActionSheetIOS, Keyboard, Platform, Pressable, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Icon } from '@/components/ui/Icon';
-import { fieldStyles } from '@/components/ui/TextField';
+import { useFieldStyles } from '@/components/ui/TextField';
 import { PAYMENT_METHODS } from '@/domain/catalog';
 import type { PaymentMethod } from '@/domain/types';
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 
 interface MethodFieldProps {
   value: PaymentMethod;
@@ -17,6 +17,9 @@ interface MethodFieldProps {
 
 /** El "select" de medio de pago: en iOS abre la hoja de acciones nativa. */
 export function MethodField({ value, listOpen, onChange, onToggleList }: MethodFieldProps) {
+  const { colors, scheme } = useTheme();
+  const fieldStyles = useFieldStyles();
+  const styles = useStyles();
   const press = () => {
     Keyboard.dismiss();
     if (Platform.OS !== 'ios') {
@@ -29,7 +32,7 @@ export function MethodField({ value, listOpen, onChange, onToggleList }: MethodF
         title: 'Medio de pago',
         options,
         cancelButtonIndex: options.length - 1,
-        userInterfaceStyle: 'light',
+        userInterfaceStyle: scheme,
         tintColor: colors.ink,
       },
       (index) => {
@@ -61,6 +64,7 @@ export function MethodOptions({
   value: PaymentMethod;
   onChange: (method: PaymentMethod) => void;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.options}>
       {PAYMENT_METHODS.map((method) => (
@@ -78,10 +82,10 @@ export function MethodOptions({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   field: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingRight: 11 },
   value: { flex: 1 },
-  options: { backgroundColor: colors.soft, borderRadius: 14, padding: 4, marginTop: -4, marginBottom: 15 },
+  options: { backgroundColor: c.soft, borderRadius: 14, padding: 4, marginTop: -4, marginBottom: 15 },
   option: { paddingVertical: 11, paddingHorizontal: 12, borderRadius: 10 },
-  optionOn: { backgroundColor: colors.surface },
-});
+  optionOn: { backgroundColor: c.surface },
+}));

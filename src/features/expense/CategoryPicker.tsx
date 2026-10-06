@@ -1,11 +1,11 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { CategoryChip } from '@/components/CategoryChip';
 import { AppText } from '@/components/ui/AppText';
 import { useGridColumns } from '@/components/ui/grid';
 import { Icon } from '@/components/ui/Icon';
 import type { Category } from '@/domain/types';
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 
 interface CategoryPickerProps {
   categories: readonly Category[];
@@ -16,6 +16,8 @@ interface CategoryPickerProps {
 
 /** La grilla de categorías del formulario, más el botón "Nueva". */
 export function CategoryPicker({ categories, selected, onSelect, onCreate }: CategoryPickerProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { itemWidth } = useGridColumns(88, 7);
   return (
     <View style={styles.grid}>
@@ -51,7 +53,7 @@ export function CategoryPicker({ categories, selected, onSelect, onCreate }: Cat
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginBottom: 18 },
   item: {
     alignItems: 'center',
@@ -60,18 +62,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingBottom: 9,
     borderRadius: 14,
-    backgroundColor: colors.soft,
+    borderCurve: 'continuous',
+    backgroundColor: c.soft,
   },
-  itemOn: { backgroundColor: colors.ink },
-  name: { fontSize: 11.5, lineHeight: 13.8, textAlign: 'center', color: colors.ink2 },
-  nameOn: { color: colors.white },
-  add: { backgroundColor: 'transparent', boxShadow: `inset 0 0 0 1.5px ${colors.line}` },
+  itemOn: { backgroundColor: c.accent },
+  name: { fontSize: 11.5, lineHeight: 13.8, textAlign: 'center', color: c.ink2 },
+  nameOn: { color: c.onAccent },
+  add: { backgroundColor: 'transparent', boxShadow: `inset 0 0 0 1.5px ${c.line}` },
   addChip: {
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: colors.chipAdd,
+    backgroundColor: c.chipAdd,
     alignItems: 'center',
     justifyContent: 'center',
   },
-});
+}));

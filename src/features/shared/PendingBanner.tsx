@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -7,7 +7,7 @@ import type { RecurringExpense } from '@/domain/types';
 import { monthName, type MonthKey } from '@/lib/dates';
 import { money } from '@/lib/money';
 import { plural } from '@/lib/text';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius } from '@/theme';
 
 export function PendingBanner({
   rules,
@@ -18,6 +18,7 @@ export function PendingBanner({
   month: MonthKey;
   onApply: () => void;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.banner}>
       <AppText style={styles.text}>
@@ -29,16 +30,16 @@ export function PendingBanner({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   banner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: colors.bannerBg,
+    backgroundColor: c.bannerBg,
     borderRadius: radius.md,
     paddingVertical: 13,
     paddingHorizontal: 14,
     marginTop: 14,
   },
   text: { flex: 1, fontSize: 14, lineHeight: 20.3 },
-});
+}));

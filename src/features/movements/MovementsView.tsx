@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -14,7 +14,7 @@ import { useAppState } from '@/state/AppStateProvider';
 import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { useCategories } from '@/state/useCategories';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius } from '@/theme';
 import { MonthBar } from '../shared/MonthBar';
 import { CategoryFilter } from './CategoryFilter';
 import { ExpenseRow } from './ExpenseRow';
@@ -22,6 +22,7 @@ import { SearchField } from './SearchField';
 
 /** Todos los gastos del mes, agrupados por día, con búsqueda y filtro por categoría. */
 export function MovementsView() {
+  const styles = useStyles();
   const { data, ui } = useAppState();
   const actions = useAppActions();
   const sheet = useSheet();
@@ -80,11 +81,11 @@ export function MovementsView() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   section: { marginTop: 14 },
   day: { marginBottom: 18 },
   dayHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8, paddingHorizontal: 4, paddingBottom: 7 },
   dayLabel: { fontSize: 13, lineHeight: 18.85, fontWeight: '600' },
-  dayTotal: { marginLeft: 'auto', fontSize: 13, color: colors.ink3, fontVariant: ['tabular-nums'] },
-  list: { backgroundColor: colors.surface, borderRadius: radius.md, overflow: 'hidden' },
-});
+  dayTotal: { marginLeft: 'auto', fontSize: 13, color: c.ink3, fontVariant: ['tabular-nums'] },
+  list: { backgroundColor: c.surface, borderRadius: radius.md, overflow: 'hidden' },
+}));

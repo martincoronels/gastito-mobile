@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { ALL_FILTER } from '@/domain/catalog';
 import { safeColor } from '@/domain/sanitize';
 import type { Category } from '@/domain/types';
-import { colors, PAD, radius } from '@/theme';
+import { makeStyles, PAD, radius } from '@/theme';
 
 interface CategoryFilterProps {
   categories: Category[];
@@ -15,6 +15,7 @@ interface CategoryFilterProps {
 
 /** La tira de filtros. Se centra sola en el elegido para no perderlo de vista. */
 export function CategoryFilter({ categories, selected, onSelect }: CategoryFilterProps) {
+  const styles = useStyles();
   const scroll = useRef<ScrollView>(null);
   const chips = useRef(new Map<string, { x: number; width: number }>());
   const viewport = useRef(0);
@@ -73,7 +74,7 @@ export function CategoryFilter({ categories, selected, onSelect }: CategoryFilte
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   scroll: { marginHorizontal: -PAD, flexGrow: 0 },
   content: { gap: 7, paddingHorizontal: PAD, paddingBottom: 12 },
   chip: {
@@ -83,10 +84,10 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     paddingHorizontal: 13,
     borderRadius: radius.pill,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
   },
-  chipOn: { backgroundColor: colors.ink },
+  chipOn: { backgroundColor: c.accent },
   dot: { width: 8, height: 8, borderRadius: 4 },
-  label: { fontSize: 13.5, lineHeight: 19.6, color: colors.ink2 },
-  labelOn: { color: colors.white },
-});
+  label: { fontSize: 13.5, lineHeight: 19.6, color: c.ink2 },
+  labelOn: { color: c.onAccent },
+}));

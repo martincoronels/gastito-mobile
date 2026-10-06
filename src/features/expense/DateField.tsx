@@ -3,13 +3,13 @@ import DateTimePicker, {
   type DateTimePickerEvent,
 } from '@react-native-community/datetimepicker';
 import { useRef } from 'react';
-import { Keyboard, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Keyboard, Platform, Pressable, View } from 'react-native';
 
 import { useRevealInSheet } from '@/components/sheet/BottomSheet';
 import { AppText } from '@/components/ui/AppText';
-import { fieldStyles } from '@/components/ui/TextField';
+import { useFieldStyles } from '@/components/ui/TextField';
 import { parseDateKey, shortDate, toDateKey, type DateKey } from '@/lib/dates';
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 
 interface DateFieldProps {
   value: DateKey;
@@ -21,6 +21,8 @@ interface DateFieldProps {
 
 /** El campo de fecha. En iOS abre el calendario nativo debajo; en Android, el diálogo del sistema. */
 export function DateField({ value, open, onToggle, onChange }: DateFieldProps) {
+  const fieldStyles = useFieldStyles();
+  const styles = useStyles();
   const press = () => {
     Keyboard.dismiss();
     if (Platform.OS === 'android') {
@@ -52,6 +54,8 @@ export function DateField({ value, open, onToggle, onChange }: DateFieldProps) {
 
 /** El calendario de iOS, debajo de la fila de fecha y medio de pago. */
 export function InlineCalendar({ value, onChange }: { value: DateKey; onChange: (date: DateKey) => void }) {
+  const { colors, scheme } = useTheme();
+  const styles = useStyles();
   const reveal = useRevealInSheet();
   const box = useRef<View>(null);
   const handle = (event: DateTimePickerEvent, date?: Date) => {
@@ -65,7 +69,7 @@ export function InlineCalendar({ value, onChange }: { value: DateKey; onChange: 
         mode="date"
         display="inline"
         locale="es-AR"
-        themeVariant="light"
+        themeVariant={scheme}
         accentColor={colors.ink}
         onChange={handle}
       />
@@ -73,14 +77,14 @@ export function InlineCalendar({ value, onChange }: { value: DateKey; onChange: 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   field: { justifyContent: 'center' },
   calendar: {
-    backgroundColor: colors.soft,
+    backgroundColor: c.soft,
     borderRadius: 16,
     marginTop: -4,
     marginBottom: 15,
     paddingHorizontal: 4,
     overflow: 'hidden',
   },
-});
+}));

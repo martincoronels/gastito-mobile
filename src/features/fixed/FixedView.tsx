@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -13,12 +13,13 @@ import { useAppState } from '@/state/AppStateProvider';
 import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { useCategories } from '@/state/useCategories';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius } from '@/theme';
 import { PendingBanner } from '../shared/PendingBanner';
 import { FixedRow } from './FixedRow';
 
 /** Los gastos que se repiten todos los meses: cuánto pesan y cuáles faltan registrar. */
 export function FixedView() {
+  const styles = useStyles();
   const { data, ui } = useAppState();
   const actions = useAppActions();
   const sheet = useSheet();
@@ -71,8 +72,8 @@ export function FixedView() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   section: { marginTop: 18 },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 14 },
-  list: { backgroundColor: colors.surface, borderRadius: radius.md, overflow: 'hidden' },
-});
+  list: { backgroundColor: c.surface, borderRadius: radius.md, overflow: 'hidden' },
+}));

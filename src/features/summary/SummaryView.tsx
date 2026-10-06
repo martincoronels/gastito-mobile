@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -16,7 +16,7 @@ import { useAppState } from '@/state/AppStateProvider';
 import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { useCategories } from '@/state/useCategories';
-import { colors } from '@/theme';
+import { makeStyles } from '@/theme';
 import { MonthBar } from '../shared/MonthBar';
 import { PendingBanner } from '../shared/PendingBanner';
 import { BudgetCard } from './BudgetCard';
@@ -26,6 +26,7 @@ import { TrendChart } from './TrendChart';
 
 /** Resumen del mes: la dona, los indicadores, el presupuesto, las categorías y la tendencia. */
 export function SummaryView() {
+  const styles = useStyles();
   const { data, ui } = useAppState();
   const actions = useAppActions();
   const sheet = useSheet();
@@ -154,11 +155,11 @@ export function SummaryView() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   hero: { alignItems: 'center', paddingTop: 4, paddingBottom: 10 },
-  heroLine: { marginTop: 2, fontSize: 14.5, lineHeight: 21, color: colors.ink2, textAlign: 'center', maxWidth: 300 },
-  heroStrong: { color: colors.ink, fontWeight: '600' },
+  heroLine: { marginTop: 2, fontSize: 14.5, lineHeight: 21, color: c.ink2, textAlign: 'center', maxWidth: 300 },
+  heroStrong: { color: c.ink, fontWeight: '600' },
   section: { marginTop: 26 },
   tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   categories: { marginTop: 30 },
-});
+}));

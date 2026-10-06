@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "backgroundColor": "#E9EDE8",
     "ios": {
       "bundleIdentifier": "com.martin.gastito",
@@ -38,6 +38,11 @@
             "NSPrivacyAccessedAPITypeReasons": ["E174.1", "85F4.1"]
           }
         ]
+      },
+      "icon": {
+        "light": "./assets/icon.png",
+        "dark": "./assets/icon-dark.png",
+        "tinted": "./assets/icon-tinted.png"
       }
     },
     "android": {
@@ -50,10 +55,25 @@
     },
     "plugins": [
       "expo-font",
-      ["expo-splash-screen", { "backgroundColor": "#E9EDE8" }],
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#E9EDE8",
+          "dark": {
+            "backgroundColor": "#0C1311"
+          }
+        }
+      ],
       "expo-sharing",
       "@react-native-community/datetimepicker",
-      ["expo-build-properties", { "ios": { "enableSceneSupport": true } }],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ],
       "expo-web-browser"
     ]
   }

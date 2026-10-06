@@ -12,7 +12,7 @@ import Animated, {
 import Svg, { G, Path } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { colors, fonts } from '@/theme';
+import { fonts, makeStyles } from '@/theme';
 import { LOGO_ARCS } from './Logo';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -35,6 +35,7 @@ function DrawnArc({ d, color, delay, animate }: { d: string; color: string; dela
  * el paso de una a otra no se nota.
  */
 export function IntroSplash() {
+  const styles = useStyles();
   const reduceMotion = useReducedMotion();
   const { height } = useWindowDimensions();
   const [gone, setGone] = useState(false);
@@ -110,10 +111,10 @@ export function IntroSplash() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { backgroundColor: colors.canvas },
+const useStyles = makeStyles((c) => ({
+  root: { backgroundColor: c.canvas },
   passThrough: { pointerEvents: 'none' },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  wordmark: { fontFamily: fonts.displayHero, fontSize: 29, letterSpacing: -1.3, color: colors.ink },
-  tagline: { fontSize: 13, color: colors.ink2, marginTop: -11 },
-});
+  wordmark: { fontFamily: fonts.displayHero, fontSize: 29, letterSpacing: -1.3, color: c.ink },
+  tagline: { fontSize: 13, color: c.ink2, marginTop: -11 },
+}));

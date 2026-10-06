@@ -1,18 +1,21 @@
 import { useState, type Ref } from 'react';
-import { StyleSheet, TextInput, type TextInputProps } from 'react-native';
+import { TextInput, type TextInputProps } from 'react-native';
 
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 
 export type TextFieldProps = TextInputProps & { ref?: Ref<TextInput> };
 
 /** Campo de texto con el borde que se oscurece al enfocarlo, como en la web. */
 export function TextField({ style, onFocus, onBlur, ref, ...rest }: TextFieldProps) {
   const [focused, setFocused] = useState(false);
+  const { colors, scheme } = useTheme();
+  const fieldStyles = useFieldStyles();
   return (
     <TextInput
       ref={ref}
       placeholderTextColor={colors.ink3}
       selectionColor={colors.ink}
+      keyboardAppearance={scheme}
       maxFontSizeMultiplier={1.4}
       {...rest}
       style={[fieldStyles.box, fieldStyles.text, focused && fieldStyles.focused, style]}
@@ -29,15 +32,15 @@ export function TextField({ style, onFocus, onBlur, ref, ...rest }: TextFieldPro
 }
 
 /** Lo comparten los campos que no son de texto (fecha, medio de pago) para verse iguales. */
-export const fieldStyles = StyleSheet.create({
+export const useFieldStyles = makeStyles((c) => ({
   box: {
     height: 46,
     borderWidth: 1.5,
-    borderColor: colors.line,
+    borderColor: c.line,
     borderRadius: 12,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     paddingHorizontal: 13,
   },
-  text: { fontSize: 16, color: colors.ink },
-  focused: { borderColor: colors.ink },
-});
+  text: { fontSize: 16, color: c.ink },
+  focused: { borderColor: c.ink },
+}));

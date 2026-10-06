@@ -1,9 +1,9 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { monthAbbr, monthTitle, type MonthKey } from '@/lib/dates';
 import { money } from '@/lib/money';
-import { colors, radius } from '@/theme';
+import { makeStyles, radius, useTheme } from '@/theme';
 
 interface TrendChartProps {
   months: { month: MonthKey; sum: number }[];
@@ -13,6 +13,8 @@ interface TrendChartProps {
 
 /** Barras de los últimos 6 meses. Tocar una lleva a ese mes. */
 export function TrendChart({ months, selected, onSelect }: TrendChartProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const max = Math.max(...months.map((m) => m.sum), 1);
   return (
     <View style={styles.card}>
@@ -32,7 +34,7 @@ export function TrendChart({ months, selected, onSelect }: TrendChartProps) {
                   styles.bar,
                   {
                     height: `${Math.max((sum / max) * 100, 3)}%`,
-                    backgroundColor: current ? colors.ink : colors.trendIdle,
+                    backgroundColor: current ? colors.accent : colors.trendIdle,
                   },
                 ]}
               />
@@ -45,9 +47,9 @@ export function TrendChart({ months, selected, onSelect }: TrendChartProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   card: {
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderRadius: radius.md,
     paddingTop: 16,
     paddingHorizontal: 14,
@@ -59,6 +61,6 @@ const styles = StyleSheet.create({
   column: { flex: 1, alignItems: 'center', gap: 7 },
   track: { flex: 1, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'flex-end' },
   bar: { width: '100%', maxWidth: 34, borderRadius: 7 },
-  label: { fontSize: 11.5, lineHeight: 16.7, color: colors.ink3 },
-  labelCurrent: { color: colors.ink, fontWeight: '600' },
-});
+  label: { fontSize: 11.5, lineHeight: 16.7, color: c.ink3 },
+  labelCurrent: { color: c.ink, fontWeight: '600' },
+}));

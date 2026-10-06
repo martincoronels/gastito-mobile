@@ -25,7 +25,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 
 import { AppText } from '@/components/ui/AppText';
 import { IconButton } from '@/components/ui/IconButton';
-import { colors, FILL, fonts, PAD } from '@/theme';
+import { FILL, fonts, makeStyles, PAD, useTheme } from '@/theme';
 
 type Revealable = View | TextInput;
 type Reveal = (target: Revealable | null, options?: { immediate?: boolean }) => void;
@@ -52,6 +52,8 @@ interface BottomSheetProps {
  * apoya arriba del teclado cuando hay un campo enfocado.
  */
 export function BottomSheet({ open, title, onRequestClose, onClosed, children }: BottomSheetProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
   const progress = useSharedValue(0);
@@ -216,31 +218,32 @@ export function BottomSheet({ open, title, onRequestClose, onClosed, children }:
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   overlay: { ...FILL, pointerEvents: 'box-none' },
-  scrim: { backgroundColor: colors.scrim },
+  scrim: { backgroundColor: c.scrim },
   frame: { ...FILL, justifyContent: 'flex-end', pointerEvents: 'box-none' },
   sheet: {
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    borderCurve: 'continuous',
     paddingHorizontal: PAD,
     flexShrink: 1,
     overflow: 'hidden',
   },
-  top: { marginHorizontal: -PAD, paddingHorizontal: PAD, paddingTop: 8, backgroundColor: colors.surface },
+  top: { marginHorizontal: -PAD, paddingHorizontal: PAD, paddingTop: 8, backgroundColor: c.surface },
   grab: {
     alignSelf: 'center',
     width: 38,
     height: 4,
     borderRadius: 9,
-    backgroundColor: colors.line,
+    backgroundColor: c.line,
     marginTop: 6,
     marginBottom: 10,
   },
   head: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 14 },
   title: { flex: 1, fontFamily: fonts.display, fontSize: 19, lineHeight: 27.5, letterSpacing: -0.38 },
-  close: { marginRight: -4, backgroundColor: colors.softer },
-  topLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 1, backgroundColor: colors.lineSoft },
+  close: { marginRight: -4, backgroundColor: c.softer },
+  topLine: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 1, backgroundColor: c.lineSoft },
   scroll: { flexGrow: 0, flexShrink: 1 },
-});
+}));

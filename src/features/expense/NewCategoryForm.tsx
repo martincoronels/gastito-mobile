@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View, type TextInput } from 'react-native';
+import { Pressable, ScrollView, View, type TextInput } from 'react-native';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -11,7 +11,7 @@ import { CUSTOM_COLORS, CUSTOM_EMOJIS, DEFAULT_EMOJI, MAX_CATEGORY_NAME_LENGTH }
 import type { Category } from '@/domain/types';
 import { firstGrapheme } from '@/lib/text';
 import { useAppActions } from '@/state/useAppActions';
-import { colors, fonts } from '@/theme';
+import { fonts, makeStyles, useTheme } from '@/theme';
 
 interface NewCategoryFormProps {
   onCancel: () => void;
@@ -20,6 +20,8 @@ interface NewCategoryFormProps {
 
 /** "Tu propia categoría": emoji, nombre y color. */
 export function NewCategoryForm({ onCancel, onCreated }: NewCategoryFormProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const actions = useAppActions();
   const reveal = useRevealInSheet();
   const [emoji, setEmoji] = useState<string>(DEFAULT_EMOJI);
@@ -119,8 +121,8 @@ export function NewCategoryForm({ onCancel, onCreated }: NewCategoryFormProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  box: { backgroundColor: colors.soft, borderRadius: 16, padding: 14, marginTop: -10, marginBottom: 18 },
+const useStyles = makeStyles((c) => ({
+  box: { backgroundColor: c.soft, borderRadius: 16, padding: 14, marginTop: -10, marginBottom: 18 },
   head: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 12 },
   title: { flex: 1, fontFamily: fonts.display, fontSize: 15, letterSpacing: -0.15 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -132,11 +134,11 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.surface,
+    backgroundColor: c.surface,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  emojiOn: { boxShadow: `inset 0 0 0 2px ${colors.ink}` },
+  emojiOn: { boxShadow: `inset 0 0 0 2px ${c.ink}` },
   emojiText: { fontSize: 18 },
   colorLabel: { marginTop: 13 },
   colors: { flexDirection: 'row', flexWrap: 'wrap', gap: 9, marginBottom: 15 },
@@ -149,6 +151,6 @@ const styles = StyleSheet.create({
     bottom: -4,
     borderRadius: 18,
     borderWidth: 2,
-    borderColor: colors.ink,
+    borderColor: c.ink,
   },
-});
+}));

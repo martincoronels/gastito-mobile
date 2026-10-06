@@ -1,11 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { View } from 'react-native';
 
 import { CategoryChip } from '@/components/CategoryChip';
 import { AppText } from '@/components/ui/AppText';
 import { IconButton } from '@/components/ui/IconButton';
 import type { Category, RecurringExpense } from '@/domain/types';
 import { money } from '@/lib/money';
-import { colors, fonts } from '@/theme';
+import { fonts, makeStyles } from '@/theme';
 
 interface FixedRowProps {
   rule: RecurringExpense;
@@ -19,6 +19,7 @@ interface FixedRowProps {
 
 /** Fila de gasto fijo: nombre y monto arriba; detalle y controles abajo. */
 export function FixedRow({ rule, category, first, due, onToggle, onDelete }: FixedRowProps) {
+  const styles = useStyles();
   const off = rule.active === false;
   return (
     <View style={styles.row}>
@@ -59,15 +60,15 @@ export function FixedRow({ rule, category, first, due, onToggle, onDelete }: Fix
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c) => ({
   row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 11, paddingHorizontal: 14 },
-  divider: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: colors.lineSoft },
+  divider: { position: 'absolute', top: 0, left: 0, right: 0, height: 1, backgroundColor: c.lineSoft },
   body: { flex: 1, gap: 1 },
   line: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   name: { flex: 1, fontSize: 14.5, lineHeight: 18.85, fontWeight: '500' },
   amount: { fontFamily: fonts.display, fontSize: 15, lineHeight: 19.5, fontVariant: ['tabular-nums'] },
-  detail: { flex: 1, fontSize: 12.5, lineHeight: 16.9, color: colors.ink3 },
-  due: { color: colors.warn, fontWeight: '500' },
+  detail: { flex: 1, fontSize: 12.5, lineHeight: 16.9, color: c.ink3 },
+  due: { color: c.warn, fontWeight: '500' },
   actions: { flexDirection: 'row', marginRight: -7, marginBottom: -3, marginLeft: -2 },
   off: { opacity: 0.45 },
-});
+}));

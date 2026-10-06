@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Platform, View, useWindowDimensions } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -29,7 +29,7 @@ import { safeColor } from '@/domain/sanitize';
 import type { CategoryIcon } from '@/domain/types';
 import { clamp } from '@/lib/math';
 import { money } from '@/lib/money';
-import { colors, FILL } from '@/theme';
+import { FILL, makeStyles, useTheme } from '@/theme';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -68,6 +68,8 @@ interface SegmentProps {
 
 /** El gráfico de dona por categoría, con el total (o la categoría elegida) en el medio. */
 export function Donut({ slices, sum, selected, animationKey, center, onSelect }: DonutProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const { width } = useWindowDimensions();
   const reduceMotion = useReducedMotion();
   const size = Math.min(320, width * 0.84);
@@ -214,6 +216,7 @@ function DotView({ segment, color, order, dimmed, animate }: SegmentProps & { se
 }
 
 function SegmentIcon({ x, y, icon, dimmed }: { x: number; y: number; icon: CategoryIcon; dimmed: boolean }) {
+  const { colors } = useTheme();
   const opacity = useSharedValue(dimmed ? DIMMED : 0.97);
   useEffect(() => {
     opacity.set(withTiming(dimmed ? DIMMED : 0.97, { duration: DIM_MS }));
@@ -249,6 +252,7 @@ function EmojiIcon({
   scale: number;
   dimmed: boolean;
 }) {
+  const styles = useStyles();
   const opacity = useSharedValue(dimmed ? DIMMED : 1);
   useEffect(() => {
     opacity.set(withTiming(dimmed ? DIMMED : 1, { duration: DIM_MS }));
@@ -276,6 +280,7 @@ function EmojiIcon({
  * debajo de la dona y se le pone sombra.
  */
 function SelectedGlow({ segment, color, size }: { segment: DonutSegment; color: string; size: number }) {
+  const styles = useStyles();
   const appear = useSharedValue(0);
   useEffect(() => {
     appear.set(withTiming(1, { duration: DIM_MS }));
@@ -294,18 +299,23 @@ function SelectedGlow({ segment, color, size }: { segment: DonutSegment; color: 
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((c, t) => ({
   center: { position: 'absolute', alignItems: 'center', justifyContent: 'center', gap: 2, pointerEvents: 'none' },
-  caption: { fontSize: 12.5, lineHeight: 18.1, fontWeight: '500', color: colors.ink2 },
-  sub: { fontSize: 12.5, lineHeight: 18.1, color: colors.ink3 },
+  caption: { fontSize: 12.5, lineHeight: 18.1, fontWeight: '500', color: c.ink2 },
+  sub: { fontSize: 12.5, lineHeight: 18.1, color: c.ink3 },
   emoji: { position: 'absolute', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' },
   glow: {
     ...FILL,
     pointerEvents: 'none',
     ...Platform.select({
-      ios: { shadowColor: colors.ink, shadowOpacity: 0.2, shadowRadius: 3.5, shadowOffset: { width: 0, height: 3 } },
+      ios: {
+        shadowColor: t.scheme === 'dark' ? '#000000' : c.ink,
+        shadowOpacity: t.scheme === 'dark' ? 0.55 : 0.2,
+        shadowRadius: 3.5,
+        shadowOffset: { width: 0, height: 3 },
+      },
       web: { filter: 'drop-shadow(0 3px 7px rgba(21,34,32,0.2))' },
       default: {},
     }),
   },
-});
+}));

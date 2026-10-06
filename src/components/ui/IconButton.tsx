@@ -1,6 +1,6 @@
-import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { Pressable, type StyleProp, type ViewStyle } from 'react-native';
 
-import { colors } from '@/theme';
+import { makeStyles, useTheme } from '@/theme';
 import { Icon } from './Icon';
 import type { IconName } from './icons';
 
@@ -8,6 +8,7 @@ interface IconButtonProps {
   icon: IconName;
   onPress: () => void;
   accessibilityLabel: string;
+  accessibilityHint?: string;
   size?: number;
   iconSize?: number;
   color?: string;
@@ -20,13 +21,16 @@ export function IconButton({
   icon,
   onPress,
   accessibilityLabel,
+  accessibilityHint,
   size = 38,
   iconSize = 20,
-  color = colors.ink2,
-  pressedColor = colors.ghost,
+  color,
+  pressedColor,
   disabled = false,
   style,
 }: IconButtonProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <Pressable
       onPress={onPress}
@@ -34,21 +38,22 @@ export function IconButton({
       hitSlop={6}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.base,
         { width: size, height: size, borderRadius: size / 2 },
         style,
-        pressed && { backgroundColor: pressedColor },
+        pressed && { backgroundColor: pressedColor ?? colors.ghost },
         disabled && styles.disabled,
       ]}
     >
-      <Icon name={icon} size={iconSize} color={color} />
+      <Icon name={icon} size={iconSize} color={color ?? colors.ink2} />
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(() => ({
   base: { alignItems: 'center', justifyContent: 'center' },
   disabled: { opacity: 0.25 },
-});
+}));

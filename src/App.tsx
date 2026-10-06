@@ -2,7 +2,6 @@ import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, type ReactNode } from 'react';
-import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -13,11 +12,13 @@ import { ToastProvider, useToast } from '@/components/feedback/ToastProvider';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { clearExports } from '@/services/backup';
 import { AppStateProvider, useAppDispatch, useAppState, useRetryLoad } from '@/state/AppStateProvider';
+import { PreferencesProvider, usePreferences } from '@/state/PreferencesProvider';
 import { SheetProvider } from '@/state/SheetProvider';
 import { asyncStorageRepository } from '@/storage/asyncStorageRepository';
-import { colors, fontAssets } from '@/theme';
+import { asyncStoragePreferences } from '@/storage/preferencesRepository';
+import { fontAssets, makeStyles, ThemeProvider, useTheme } from '@/theme';
 
-// la pantalla de carga nativa queda hasta que estén las fuentes y los datos
+// la pantalla de carga nativa queda hasta que estén las fuentes, las preferencias y los datos
 void SplashScreen.preventAutoHideAsync();
 
 export default function App() {
@@ -27,20 +28,36 @@ export default function App() {
   useEffect(clearExports, []);
 
   return (
-    <GestureHandlerRootView style={styles.root}>
-      <SafeAreaProvider>
-        <ErrorBoundary>
-          <ToastProvider>
-            <DataProvider>
-              <SheetProvider>
-                <Root fontsReady={fontsLoaded || fontError != null} />
-              </SheetProvider>
-            </DataProvider>
-          </ToastProvider>
-        </ErrorBoundary>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <SafeAreaProvider>
+      <PreferencesProvider repository={asyncStoragePreferences}>
+        <ThemedApp>
+          <ErrorBoundary>
+            <ToastProvider>
+              <DataProvider>
+                <SheetProvider>
+                  <Root fontsReady={fontsLoaded || fontError != null} />
+                </SheetProvider>
+              </DataProvider>
+            </ToastProvider>
+          </ErrorBoundary>
+        </ThemedApp>
+      </PreferencesProvider>
+    </SafeAreaProvider>
   );
+}
+
+function ThemedApp({ children }: { children: ReactNode }) {
+  const { prefs } = usePreferences();
+  return (
+    <ThemeProvider appearance={prefs.appearance}>
+      <ThemedRoot>{children}</ThemedRoot>
+    </ThemeProvider>
+  );
+}
+
+function ThemedRoot({ children }: { children: ReactNode }) {
+  const styles = useStyles();
+  return <GestureHandlerRootView style={styles.root}>{children}</GestureHandlerRootView>;
 }
 
 function DataProvider({ children }: { children: ReactNode }) {
@@ -57,10 +74,12 @@ function DataProvider({ children }: { children: ReactNode }) {
 
 function Root({ fontsReady }: { fontsReady: boolean }) {
   const { status, issue } = useAppState();
+  const { ready: prefsReady } = usePreferences();
+  const { scheme } = useTheme();
   const dispatch = useAppDispatch();
   const retry = useRetryLoad();
   const toast = useToast();
-  const settled = fontsReady && status !== 'loading';
+  const settled = fontsReady && prefsReady && status !== 'loading';
 
   useEffect(() => {
     if (settled) void SplashScreen.hideAsync();
@@ -73,16 +92,21 @@ function Root({ fontsReady }: { fontsReady: boolean }) {
   }, [issue, toast, dispatch]);
 
   if (!settled) return null;
-  if (status === 'error') return <LoadError onRetry={retry} />;
   return (
     <>
-      <StatusBar style="dark" />
-      <HomeScreen />
-      <IntroSplash />
+      <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+      {status === 'error' ? (
+        <LoadError onRetry={retry} />
+      ) : (
+        <>
+          <HomeScreen />
+          <IntroSplash />
+        </>
+      )}
     </>
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.canvas },
-});
+const useStyles = makeStyles((c) => ({
+  root: { flex: 1, backgroundColor: c.canvas },
+}));
