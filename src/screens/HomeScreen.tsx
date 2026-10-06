@@ -17,6 +17,7 @@ import { MovementsView } from '@/features/movements/MovementsView';
 import { SheetHost } from '@/features/sheets/SheetHost';
 import { SummaryView } from '@/features/summary/SummaryView';
 import { useAppState } from '@/state/AppStateProvider';
+import { useLock } from '@/state/LockProvider';
 import { useIncomingLinks } from '@/state/useIncomingLinks';
 import { useReminderSync } from '@/state/useReminderSync';
 import { useSheet } from '@/state/SheetProvider';
@@ -35,8 +36,10 @@ export function HomeScreen() {
   const previousView = useRef(ui.view);
   const enter = useSharedValue(1);
 
+  const { locked } = useLock();
   useReminderSync();
-  useIncomingLinks(true);
+  // lo que llegue bloqueado (un link, el toque en un aviso) se atiende al desbloquear
+  useIncomingLinks(!locked);
 
   // cada toque en una pestaña vuelve arriba de todo; si cambió la sección, entra con un fundido
   useEffect(() => {
@@ -58,7 +61,12 @@ export function HomeScreen() {
   }));
 
   return (
-    <View style={styles.root}>
+    <View
+      style={styles.root}
+      // con la app bloqueada, VoiceOver tampoco llega a lo que está debajo
+      accessibilityElementsHidden={locked}
+      importantForAccessibility={locked ? 'no-hide-descendants' : 'auto'}
+    >
       <ScrollView
         ref={scroll}
         contentInsetAdjustmentBehavior="never"

@@ -23,13 +23,14 @@ import { formatInteger } from '@/lib/money';
 import { plural } from '@/lib/text';
 import { exportBackup, exportMonthCsv, pickBackup } from '@/services/backup';
 import { useAppState } from '@/state/AppStateProvider';
+import { useLock } from '@/state/LockProvider';
 import { usePreferences } from '@/state/PreferencesProvider';
 import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { useCategories } from '@/state/useCategories';
 import { makeStyles, useTheme } from '@/theme';
 import { ReminderSettings } from './ReminderSettings';
-import { SettingsBlock, SettingsRow, SettingsSection } from './SettingsList';
+import { SettingsBlock, SettingsRow, SettingsSection, SettingsSwitchRow } from './SettingsList';
 
 const APPEARANCE_OPTIONS: readonly { value: AppearancePreference; label: string }[] = [
   { value: 'system', label: 'Automática' },
@@ -39,6 +40,7 @@ const APPEARANCE_OPTIONS: readonly { value: AppearancePreference; label: string 
 
 /** Colores de los íconos de cada fila (los de las categorías, como los íconos de Ajustes de iOS). */
 const TINT = {
+  lock: '#1F7A4C',
   export: '#2D5FD1',
   csv: '#0E8579',
   import: '#D2851B',
@@ -57,6 +59,8 @@ export function SettingsSheet() {
   const categories = useCategories();
   const reveal = useRevealInSheet();
   const { prefs, update } = usePreferences();
+  const lock = useLock();
+  const lockMethod = lock.capability?.available ? lock.capability.method : 'Face ID';
   const budgetInput = useRef<TextInput>(null);
   const [budget, setBudget] = useState(data.settings.budget ? formatInteger(data.settings.budget) : '');
 
@@ -206,7 +210,23 @@ export function SettingsSheet() {
         </SettingsSection>
       ) : null}
 
-      <SettingsSection title="Privacidad">
+      <SettingsSection
+        title="Privacidad"
+        footer={
+          lock.capability && !lock.capability.available
+            ? 'Para usar el bloqueo, configurá un código en Ajustes de iOS → Face ID y código.'
+            : undefined
+        }
+      >
+        <SettingsSwitchRow
+          icon="lock"
+          tint={TINT.lock}
+          title={lockMethod === 'el código' ? 'Bloquear con el código' : `Bloquear con ${lockMethod}`}
+          detail="Lo pide al abrir Gastito y oculta tus montos en el selector de apps"
+          value={prefs.lock}
+          disabled={lock.authenticating}
+          onValueChange={(on) => void (on ? lock.enableLock() : lock.disableLock())}
+        />
         <SettingsRow
           icon="shield"
           tint={TINT.privacy}

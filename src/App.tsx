@@ -1,17 +1,19 @@
 import { useFonts } from 'expo-font';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { IntroSplash } from '@/components/brand/IntroSplash';
+import { LockLayer } from '@/components/brand/LockLayer';
 import { ErrorBoundary } from '@/components/feedback/ErrorBoundary';
 import { LoadError } from '@/components/feedback/LoadError';
 import { ToastProvider, useToast } from '@/components/feedback/ToastProvider';
 import { HomeScreen } from '@/screens/HomeScreen';
 import { clearExports } from '@/services/backup';
 import { AppStateProvider, useAppDispatch, useAppState, useRetryLoad } from '@/state/AppStateProvider';
+import { LockProvider, useLock } from '@/state/LockProvider';
 import { PreferencesProvider, usePreferences } from '@/state/PreferencesProvider';
 import { SheetProvider } from '@/state/SheetProvider';
 import { asyncStorageRepository } from '@/storage/asyncStorageRepository';
@@ -31,15 +33,19 @@ export default function App() {
     <SafeAreaProvider>
       <PreferencesProvider repository={asyncStoragePreferences}>
         <ThemedApp>
-          <ErrorBoundary>
-            <ToastProvider>
-              <DataProvider>
-                <SheetProvider>
-                  <Root fontsReady={fontsLoaded || fontError != null} />
-                </SheetProvider>
-              </DataProvider>
-            </ToastProvider>
-          </ErrorBoundary>
+          <LockProvider>
+            <ErrorBoundary>
+              <ToastProvider>
+                <DataProvider>
+                  <SheetProvider>
+                    <Root fontsReady={fontsLoaded || fontError != null} />
+                  </SheetProvider>
+                </DataProvider>
+              </ToastProvider>
+            </ErrorBoundary>
+            {/* por encima de todo, incluso de los avisos */}
+            <LockLayer />
+          </LockProvider>
         </ThemedApp>
       </PreferencesProvider>
     </SafeAreaProvider>
@@ -76,6 +82,7 @@ function Root({ fontsReady }: { fontsReady: boolean }) {
   const { status, issue } = useAppState();
   const { ready: prefsReady } = usePreferences();
   const { scheme } = useTheme();
+  const { locked } = useLock();
   const dispatch = useAppDispatch();
   const retry = useRetryLoad();
   const toast = useToast();
@@ -91,6 +98,10 @@ function Root({ fontsReady }: { fontsReady: boolean }) {
     dispatch({ type: 'issueSeen' });
   }, [issue, toast, dispatch]);
 
+  // la apertura animada solo si la app no arranca bloqueada (si no, la tapa la pantalla de bloqueo)
+  const [intro, setIntro] = useState<boolean | null>(null);
+  if (settled && intro === null) setIntro(!locked);
+
   if (!settled) return null;
   return (
     <>
@@ -100,7 +111,7 @@ function Root({ fontsReady }: { fontsReady: boolean }) {
       ) : (
         <>
           <HomeScreen />
-          <IntroSplash />
+          {intro ? <IntroSplash /> : null}
         </>
       )}
     </>

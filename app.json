@@ -76,7 +76,13 @@
         }
       ],
       "expo-web-browser",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Gastito usa Face ID para que solo vos puedas abrir la app y ver tus gastos."
+        }
+      ]
     ]
   }
 }
