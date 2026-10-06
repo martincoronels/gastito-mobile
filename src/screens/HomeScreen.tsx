@@ -9,7 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { BottomNav } from '@/components/layout/BottomNav';
+import { BottomNav, useTabBarFrame } from '@/components/layout/BottomNav';
 import { Fab } from '@/components/layout/Fab';
 import { Header, useHeaderHeight } from '@/components/layout/Header';
 import { FixedView } from '@/features/fixed/FixedView';
@@ -31,6 +31,7 @@ export function HomeScreen() {
   const actions = useAppActions();
   const sheet = useSheet();
   const headerHeight = useHeaderHeight();
+  const { contentInset } = useTabBarFrame();
   const reduceMotion = useReducedMotion();
   const scroll = useRef<ScrollView>(null);
   const previousView = useRef(ui.view);
@@ -72,7 +73,8 @@ export function HomeScreen() {
         contentInsetAdjustmentBehavior="never"
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
-        contentContainerStyle={[styles.content, { paddingTop: headerHeight }]}
+        contentContainerStyle={[styles.content, { paddingTop: headerHeight, paddingBottom: contentInset }]}
+        scrollIndicatorInsets={{ top: headerHeight - 10, bottom: contentInset - 24 }}
       >
         <Animated.View style={enterStyle}>
           {ui.view === 'resumen' ? <SummaryView /> : ui.view === 'movimientos' ? <MovementsView /> : <FixedView />}
@@ -88,5 +90,5 @@ export function HomeScreen() {
 
 const useStyles = makeStyles((c) => ({
   root: { flex: 1, backgroundColor: c.canvas },
-  content: { paddingHorizontal: PAD, paddingBottom: 132 },
+  content: { paddingHorizontal: PAD },
 }));

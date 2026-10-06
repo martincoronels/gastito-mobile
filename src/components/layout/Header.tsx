@@ -4,6 +4,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { Logo } from '@/components/brand/Logo';
 import { AppText } from '@/components/ui/AppText';
+import { GlassSurface, liquidGlass } from '@/components/ui/Glass';
 import { IconButton } from '@/components/ui/IconButton';
 import { fonts, HEADER_CONTENT_HEIGHT, makeStyles, PAD, useTheme } from '@/theme';
 
@@ -33,7 +34,14 @@ export function Header({ onOpenSettings }: { onOpenSettings: () => void }) {
         <Logo size={24} />
         <AppText style={styles.brandText}>Gastito</AppText>
       </View>
-      <IconButton icon="gear" onPress={onOpenSettings} accessibilityLabel="Ajustes" />
+      {liquidGlass ? (
+        // en iOS 26, los botones de arriba son círculos de vidrio
+        <GlassSurface style={styles.glassButton} interactive>
+          <IconButton icon="gear" onPress={onOpenSettings} accessibilityLabel="Ajustes" />
+        </GlassSurface>
+      ) : (
+        <IconButton icon="gear" onPress={onOpenSettings} accessibilityLabel="Ajustes" />
+      )}
     </View>
   );
 }
@@ -52,4 +60,5 @@ const useStyles = makeStyles(() => ({
   },
   brand: { flexDirection: 'row', alignItems: 'center', gap: 9, marginRight: 'auto' },
   brandText: { fontFamily: fonts.displayBold, fontSize: 21, lineHeight: 30.4, letterSpacing: -0.63 },
+  glassButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
 }));
