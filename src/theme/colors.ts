@@ -1,0 +1,31 @@
+/** Paleta de Gastito: los mismos valores que los tokens CSS de la web. */
+export const colors = {
+  canvas: '#E9EDE8',
+  surface: '#FFFFFF',
+  ink: '#152220',
+  ink2: '#5E6D67',
+  ink3: '#93A099',
+  line: '#DBE2DB',
+  lineSoft: '#EAEFE9',
+  ok: '#1F7A4C',
+  warn: '#C4531A',
+  white: '#FFFFFF',
+
+  // tintes que usaba cada componente en la web
+  ghost: '#DFE5DE',
+  ghostPressed: '#D4DDD3',
+  soft: '#F5F8F4',
+  softer: '#F0F4EF',
+  softPressed: '#E2E9E1',
+  navActive: '#E7EDE6',
+  chipAdd: '#EDF2EC',
+  dangerBg: '#F6E2DC',
+  dangerInk: '#A93412',
+  bannerBg: '#FFF6E4',
+  trendIdle: '#DDE5DC',
+  donutEmpty: '#E4EAE3',
+  amountPlaceholder: '#D3DBD3',
+  checkbox: '#8B9690',
+  scrim: 'rgba(21,34,32,0.42)',
+  navGlass: 'rgba(255,255,255,0.92)',
+} as const;
