@@ -26,3 +26,11 @@ console.error = (...args: unknown[]) => {
   if (typeof args[0] === 'string' && args[0].includes('Some of the callbacks in the gesture are worklets')) return;
   originalError(...args);
 };
+
+// expo-notifications avisa que en Expo Go para Android no hay notificaciones push: Gastito no usa
+// push (solo avisos locales) y es solo para iPhone.
+const originalWarn = console.warn;
+console.warn = (...args: unknown[]) => {
+  if (typeof args[0] === 'string' && args[0].includes('Android Push notifications (remote notifications)')) return;
+  originalWarn(...args);
+};

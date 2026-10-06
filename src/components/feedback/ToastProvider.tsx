@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
 import { AppText } from '@/components/ui/AppText';
+import { useTheme } from '@/theme';
 
 export interface ToastOptions {
   /** Un botón dentro del aviso, por ejemplo "Deshacer" */
@@ -50,6 +51,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const insets = useSafeAreaInsets();
   const { width: screenWidth } = useWindowDimensions();
   const reduceMotion = useReducedMotion();
+  const { scheme } = useTheme();
   const island = hasDynamicIsland(insets.top);
   const top = island ? Math.max(insets.top - 48, 8) : insets.top + 6;
 
@@ -136,7 +138,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {current ? (
           <Animated.View
             onLayout={(e) => size.set({ width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height })}
-            style={[styles.pill, { maxWidth: screenWidth - 24, minHeight: ISLAND.height }, pillStyle]}
+            style={[
+              styles.pill,
+              { maxWidth: screenWidth - 24, minHeight: ISLAND.height },
+              // sin isla con la que fundirse, en oscuro un borde sutil lo separa del fondo
+              !island && scheme === 'dark' && styles.outlined,
+              pillStyle,
+            ]}
           >
             <Pressable
               onPress={hide}
@@ -190,6 +198,7 @@ const styles = StyleSheet.create({
     transformOrigin: 'top',
     boxShadow: '0 6px 18px rgba(0,0,0,0.22)',
   },
+  outlined: { borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(255,255,255,0.18)' },
   body: { paddingVertical: 10, paddingLeft: 18, paddingRight: 10, minHeight: ISLAND.height, justifyContent: 'center' },
   content: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   text: { flexShrink: 1, color: '#FFFFFF', fontSize: 13.5, lineHeight: 19, paddingRight: 8 },

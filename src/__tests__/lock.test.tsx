@@ -124,5 +124,7 @@ describe('bloqueo con Face ID', () => {
     await waitFor(() => expect(alert).toHaveBeenCalledWith('Bloqueo desactivado', expect.any(String)));
     await waitFor(() => expect(screen.queryByText('Bloqueado')).toBeNull());
     expect(auth.authenticateAsync).not.toHaveBeenCalled();
+    // la pantalla de bloqueo termina de irse (queda solo el "Gastito" del encabezado)
+    await waitFor(() => expect(screen.getAllByText('Gastito', { exact: true })).toHaveLength(1));
   });
 });
