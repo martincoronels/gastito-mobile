@@ -20,13 +20,19 @@ export interface UiState {
 }
 
 export interface AppState {
-  status: 'loading' | 'ready';
+  /** `error`: no se pudieron leer los datos; la app no guarda nada hasta reintentar */
+  status: 'loading' | 'ready' | 'error';
+  /** `recovered`: lo guardado estaba dañado; se guardó una copia y se arrancó de cero */
+  issue: 'recovered' | null;
   data: AppData;
   ui: UiState;
 }
 
 export type AppAction =
-  | { type: 'hydrated'; data: AppData }
+  | { type: 'hydrated'; data: AppData; issue?: 'recovered' }
+  | { type: 'loadFailed' }
+  | { type: 'loadRetried' }
+  | { type: 'issueSeen' }
   | {
       type: 'dataChanged';
       data: AppData;
@@ -34,7 +40,7 @@ export type AppAction =
       animate?: boolean;
       ui?: Partial<Pick<UiState, 'month' | 'selected' | 'filter'>>;
     }
-  | { type: 'viewChanged'; view: ViewId }
+  | { type: 'viewChanged'; view: ViewId; month?: MonthKey }
   | { type: 'monthChanged'; month: MonthKey }
   | { type: 'selectionToggled'; id: string }
   | { type: 'filterChanged'; filter: string }
@@ -42,6 +48,7 @@ export type AppAction =
 
 export const createInitialState = (now: Date = new Date()): AppState => ({
   status: 'loading',
+  issue: null,
   data: emptyData(),
   ui: {
     view: 'resumen',
@@ -58,25 +65,35 @@ export function appReducer(state: AppState, action: AppAction): AppState {
   const { ui } = state;
   switch (action.type) {
     case 'hydrated':
-      return { ...state, status: 'ready', data: action.data };
+      return { ...state, status: 'ready', data: action.data, issue: action.issue ?? null };
+    case 'loadFailed':
+      return { ...state, status: 'error' };
+    case 'loadRetried':
+      return { ...state, status: 'loading' };
+    case 'issueSeen':
+      return { ...state, issue: null };
     case 'dataChanged':
       return {
         ...state,
         data: action.data,
         ui: { ...ui, ...action.ui, donutKey: action.animate ? ui.donutKey + 1 : ui.donutKey },
       };
-    case 'viewChanged':
+    case 'viewChanged': {
+      const month = action.month ?? ui.month;
       return {
         ...state,
         ui: {
           ...ui,
           view: action.view,
+          month,
           selected: null,
           tabKey: ui.tabKey + 1,
-          donutKey: action.view === 'resumen' ? ui.donutKey + 1 : ui.donutKey,
+          donutKey: action.view === 'resumen' || month !== ui.month ? ui.donutKey + 1 : ui.donutKey,
         },
       };
+    }
     case 'monthChanged':
+      if (action.month === ui.month) return state;
       return { ...state, ui: { ...ui, month: action.month, selected: null, donutKey: ui.donutKey + 1 } };
     case 'selectionToggled':
       return { ...state, ui: { ...ui, selected: ui.selected === action.id ? null : action.id } };
