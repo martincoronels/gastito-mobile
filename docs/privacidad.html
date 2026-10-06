@@ -3,66 +3,126 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
 <title>Política de privacidad · Gastito para iPhone</title>
-<meta name="description" content="Qué datos usa la app Gastito para iPhone y dónde quedan guardados.">
+<meta name="description" content="Qué datos usa la app Gastito para iPhone, dónde quedan guardados y cómo borrarlos.">
 <style>
-  :root { --canvas:#E9EDE8; --surface:#fff; --ink:#152220; --ink-2:#5E6D67; }
-  body { margin:0; background:var(--canvas); color:var(--ink); font:16px/1.55 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; }
-  main { max-width:680px; margin:0 auto; padding:40px 20px 64px; }
+  :root { --canvas:#E9EDE8; --surface:#fff; --ink:#152220; --ink-2:#5E6D67; --line:#DBE2DB; --soft:#F5F8F4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --canvas:#0C1311; --surface:#17201E; --ink:#EBF0EB; --ink-2:#A9B6B0; --line:#2A3532; --soft:#1D2724; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--canvas); color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; -webkit-text-size-adjust:100%; }
+  main { max-width:720px; margin:0 auto; padding:40px 16px 64px; }
   article { background:var(--surface); border-radius:22px; padding:28px 24px; }
-  h1 { font-size:26px; line-height:1.2; margin:0 0 6px; letter-spacing:-.02em; }
-  h2 { font-size:17px; margin:26px 0 6px; }
+  h1 { font-size:27px; line-height:1.2; margin:0 0 6px; letter-spacing:-.02em; }
+  h2 { font-size:18px; margin:30px 0 6px; letter-spacing:-.01em; }
   p, li { color:var(--ink-2); }
-  .date { margin:0 0 18px; font-size:14px; }
+  ul { padding-left:20px; }
+  li { margin:4px 0; }
+  strong { color:var(--ink); }
   a { color:var(--ink); }
+  .date { margin:0 0 20px; font-size:14px; }
+  .summary { background:var(--soft); border:1px solid var(--line); border-radius:16px; padding:16px 18px; margin:18px 0 8px; }
+  .summary p { margin:0; color:var(--ink); }
+  .legal { font-size:14px; border-top:1px solid var(--line); margin-top:30px; padding-top:16px; }
+  nav { font-size:14px; margin-top:20px; text-align:center; }
+  nav a { margin:0 8px; color:var(--ink-2); }
 </style>
 </head>
 <body>
 <main>
 <article>
   <h1>Política de privacidad de Gastito para iPhone</h1>
-  <p class="date">Última actualización: 5 de octubre de 2026</p>
+  <p class="date">Última actualización: 6 de octubre de 2026</p>
 
-  <p>Gastito es una app para registrar tus gastos personales y ver en qué se te va la plata cada mes.
-  Está hecha para que tus datos sean solo tuyos.</p>
+  <div class="summary">
+    <p><strong>En pocas palabras:</strong> Gastito no recopila datos. Todo lo que cargás queda solo en tu
+    iPhone. No hay cuentas, servidores, publicidad, analíticas ni seguimiento.</p>
+  </div>
 
-  <h2>Qué datos usa</h2>
-  <p>Solo lo que cargás vos: montos, categorías, notas, fechas, medios de pago, gastos fijos, categorías
-  propias y el presupuesto mensual.</p>
+  <h2>Qué datos usa la app</h2>
+  <p>Solo los que cargás vos, para mostrártelos:</p>
+  <ul>
+    <li>Tus gastos: montos, categorías, notas, fechas y medios de pago.</li>
+    <li>Tus gastos fijos, tus categorías propias y tu presupuesto mensual.</li>
+    <li>Preferencias de este iPhone: apariencia, recordatorios elegidos y si el bloqueo está activado.</li>
+    <li>Dos datos de uso que nunca salen del teléfono: la fecha en que abriste la app por primera vez y
+    cuántos gastos anotaste. Sirven solo para decidir cuándo mostrar (como mucho, una vez cada varios
+    meses) el cartel de Apple para calificar la app.</li>
+  </ul>
 
   <h2>Dónde quedan</h2>
-  <p>Únicamente en tu dispositivo, dentro del almacenamiento de la app. Gastito no tiene cuentas ni
-  servidores, y no envía tus datos a ningún lado.</p>
+  <p>Únicamente en tu dispositivo, dentro del almacenamiento privado de la app, que iOS protege y cifra.
+  Gastito no tiene servidores y no envía tus datos a ningún lado: funciona sin conexión. Solo usa
+  internet si tocás un link a una página como esta.</p>
 
   <h2>Qué no hace</h2>
   <ul>
-    <li>No recopila, vende ni comparte datos personales.</li>
-    <li>No usa analíticas, publicidad ni herramientas de seguimiento.</li>
-    <li>No accede a tus contactos, fotos, ubicación ni a otras apps.</li>
+    <li>No recopila, vende ni comparte datos personales con nadie.</li>
+    <li>No usa analíticas, publicidad, herramientas de seguimiento ni el identificador de publicidad.</li>
+    <li>No accede a tus contactos, fotos, ubicación, cámara, micrófono ni a otras apps.</li>
   </ul>
 
+  <h2>Permisos opcionales</h2>
+  <p><strong>Notificaciones.</strong> Solo si activás un recordatorio (vencimiento de gastos fijos,
+  recordatorio diario o resumen del mes). Son notificaciones locales: las programa y las muestra tu propio
+  iPhone, sin pasar por ningún servidor. Si activaste el bloqueo, no muestran montos. Se desactivan en la
+  app o en Ajustes de iOS.</p>
+  <p><strong>Face ID o Touch ID.</strong> Solo si activás el bloqueo. La verificación la hace iOS: Gastito
+  nunca accede a tu cara, tu huella ni tu código; solo recibe la respuesta «verificado» o «no verificado».</p>
+
   <h2>Exportar e importar</h2>
-  <p>Cuando elegís exportar (JSON o CSV), la app crea el archivo y abre la hoja de compartir de iOS:
-  vos decidís dónde guardarlo o a quién mandarlo. Importar abre el selector de archivos de iOS y solo
-  lee el archivo que elijas.</p>
+  <p>Cuando exportás (backup o CSV), la app crea el archivo y abre la hoja de compartir de iOS: vos decidís
+  dónde guardarlo o a quién mandarlo. La copia temporal se borra de la app. Importar abre el selector de
+  archivos de iOS, lee solo el archivo que elegís y revisa cada dato antes de usarlo.</p>
+
+  <h2>Atajos y links</h2>
+  <p>La app acepta links del tipo <code>gastito://anotar</code> para que puedas crear atajos. Un link
+  solo abre una pantalla o el formulario con datos precargados: nunca guarda ni borra nada por su cuenta.</p>
 
   <h2>Copias de seguridad del sistema</h2>
-  <p>Si tenés activadas las copias de seguridad de iCloud o de tu computadora, iOS puede incluir los
-  datos de la app en esas copias, según la política de privacidad de Apple.</p>
+  <p>Si tenés activadas las copias de seguridad de iCloud o de tu computadora, iOS puede incluir los datos
+  de la app en esas copias, que se rigen por la política de privacidad de Apple.</p>
 
-  <h2>Cómo borrar tus datos</h2>
-  <p>Desde la app, en Ajustes → Borrar todo. También se borran al desinstalar la app.</p>
+  <h2>Seguridad</h2>
+  <ul>
+    <li>Los datos quedan en el almacenamiento privado de la app, protegido por el cifrado de iOS.</li>
+    <li>Bloqueo opcional con Face ID, Touch ID o el código del iPhone.</li>
+    <li>Con el bloqueo activado, la app se tapa en el selector de apps para que no se vean tus montos.</li>
+    <li>Todo archivo importado se valida campo por campo; los CSV exportados están protegidos contra
+    fórmulas maliciosas en planillas de cálculo.</li>
+  </ul>
+
+  <h2>Cuánto tiempo se guardan y cómo borrarlos</h2>
+  <p>Mientras tengas la app instalada. Podés borrarlos cuando quieras desde la app, en
+  <strong>Ajustes → Borrar todo</strong>, o eliminando la app del iPhone.</p>
+
+  <h2>Tus derechos</h2>
+  <p>La Ley 25.326 de Protección de Datos Personales (y normas similares de otros países) te da derecho a
+  acceder, rectificar, actualizar y suprimir tus datos. Como Gastito no guarda ninguno de tus datos fuera
+  de tu iPhone, los ejercés directamente en la app: podés verlos, corregirlos, exportarlos y borrarlos en
+  cualquier momento. Si tenés alguna consulta, escribinos.</p>
 
   <h2>Menores de edad</h2>
   <p>Gastito no recopila datos de nadie, incluidos menores de edad.</p>
 
-  <h2>Cambios</h2>
-  <p>Si esta política cambia, la nueva versión se publica en esta misma página con su fecha.</p>
+  <h2>Cambios en esta política</h2>
+  <p>Si la política cambia, la nueva versión se publica en esta misma página con su fecha. Si algún cambio
+  afectara cómo se tratan tus datos, también lo vas a ver en las notas de la actualización de la app.</p>
 
   <h2>Contacto</h2>
-  <!-- TODO: reemplazá el email por el tuyo antes de publicar -->
-  <p>Consultas: <a href="mailto:tu-email@ejemplo.com">tu-email@ejemplo.com</a></p>
+  <!-- TODO: reemplazá el email por el tuyo antes de publicar (npm run check:release lo controla) -->
+  <p>Consultas sobre privacidad: <a href="mailto:tu-email@ejemplo.com">tu-email@ejemplo.com</a></p>
+
+  <p class="legal">El titular de los datos personales tiene la facultad de ejercer el derecho de acceso a
+  los mismos en forma gratuita a intervalos no inferiores a seis meses, salvo que se acredite un interés
+  legítimo al efecto conforme lo establecido en el artículo 14, inciso 3 de la Ley N° 25.326. La Agencia de
+  Acceso a la Información Pública, en su carácter de Órgano de Control de la Ley N° 25.326, tiene la
+  atribución de atender las denuncias y reclamos que interpongan quienes resulten afectados en sus derechos
+  por incumplimiento de las normas vigentes en materia de protección de datos personales.</p>
 </article>
+<nav><a href="terminos">Términos de uso</a> · <a href="soporte">Soporte</a></nav>
 </main>
 </body>
 </html>

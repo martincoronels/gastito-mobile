@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Soporte · Gastito para iPhone</title>
+<meta name="description" content="Ayuda y preguntas frecuentes de la app Gastito para iPhone.">
+<style>
+  :root { --canvas:#E9EDE8; --surface:#fff; --ink:#152220; --ink-2:#5E6D67; --line:#DBE2DB; --soft:#F5F8F4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --canvas:#0C1311; --surface:#17201E; --ink:#EBF0EB; --ink-2:#A9B6B0; --line:#2A3532; --soft:#1D2724; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--canvas); color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; -webkit-text-size-adjust:100%; }
+  main { max-width:720px; margin:0 auto; padding:40px 16px 64px; }
+  article { background:var(--surface); border-radius:22px; padding:28px 24px; }
+  h1 { font-size:27px; line-height:1.2; margin:0 0 6px; letter-spacing:-.02em; }
+  h2 { font-size:18px; margin:30px 0 10px; letter-spacing:-.01em; }
+  p, li { color:var(--ink-2); }
+  ol, ul { padding-left:20px; }
+  li { margin:4px 0; }
+  strong { color:var(--ink); }
+  a { color:var(--ink); }
+  code { background:var(--soft); border:1px solid var(--line); border-radius:6px; padding:1px 5px; font-size:14px; }
+  details { border-top:1px solid var(--line); padding:12px 0; }
+  details:last-of-type { border-bottom:1px solid var(--line); }
+  summary { cursor:pointer; font-weight:600; color:var(--ink); }
+  details p, details ol, details ul { margin:8px 0 0; }
+  .contact { background:var(--soft); border:1px solid var(--line); border-radius:16px; padding:16px 18px; margin-top:8px; }
+  .contact p { margin:0; color:var(--ink); }
+  nav { font-size:14px; margin-top:20px; text-align:center; }
+  nav a { margin:0 8px; color:var(--ink-2); }
+</style>
+</head>
+<body>
+<main>
+<article>
+  <h1>Soporte de Gastito</h1>
+  <p>Gastito te muestra en qué se te va la plata cada mes. Si algo no funciona o tenés una idea, escribinos.</p>
+
+  <div class="contact">
+    <!-- TODO: reemplazá el email por el tuyo antes de publicar (npm run check:release lo controla) -->
+    <p>✉️ <a href="mailto:tu-email@ejemplo.com">tu-email@ejemplo.com</a> · respondemos en unos días hábiles.</p>
+  </div>
+
+  <h2>Preguntas frecuentes</h2>
+
+  <details>
+    <summary>¿Dónde quedan mis datos?</summary>
+    <p>Solo en tu iPhone. Gastito no tiene cuentas ni servidores. Por eso, si desinstalás la app o cambiás
+    de teléfono, necesitás un backup.</p>
+  </details>
+
+  <details>
+    <summary>¿Cómo hago un backup o me paso a otro iPhone?</summary>
+    <ol>
+      <li>En Gastito, tocá el engranaje → <strong>Exportar backup</strong> y guardá el archivo (por ejemplo,
+      en Archivos → iCloud Drive).</li>
+      <li>En el iPhone nuevo, instalá Gastito, andá a Ajustes → <strong>Importar backup</strong> y elegí ese
+      archivo.</li>
+    </ol>
+    <p>El backup también sirve con Gastito para la web, y al revés.</p>
+  </details>
+
+  <details>
+    <summary>¿Puedo abrir mis gastos en Excel o Google Sheets?</summary>
+    <p>Sí: Ajustes → <strong>Exportar … en CSV</strong> exporta el mes que estés mirando.</p>
+  </details>
+
+  <details>
+    <summary>¿Cómo funcionan los gastos fijos?</summary>
+    <p>Al anotar un gasto, marcá «Se repite todos los meses». Cada mes, cuando vence, Gastito te avisa que
+    falta registrarlo y lo registrás con un toque. Desde la pestaña Fijos los podés pausar o eliminar
+    (también deslizando la fila).</p>
+  </details>
+
+  <details>
+    <summary>¿Cómo activo los recordatorios?</summary>
+    <p>Ajustes → Recordatorios. Podés elegir el aviso de gastos fijos, un recordatorio diario (solo los días
+    que no anotaste nada) y el resumen del mes. Si no te llegan, revisá que Gastito tenga permiso en Ajustes
+    de iOS → Gastito → Notificaciones.</p>
+  </details>
+
+  <details>
+    <summary>¿Cómo protejo la app con Face ID?</summary>
+    <p>Ajustes → Privacidad → <strong>Bloquear con Face ID</strong>. La app te lo va a pedir al abrirla y
+    no va a mostrar tus montos en el selector de apps. Si Face ID falla, iOS te ofrece usar el código del
+    iPhone.</p>
+  </details>
+
+  <details>
+    <summary>¿Puedo anotar un gasto más rápido, desde la pantalla de inicio o el botón de Acción?</summary>
+    <p>Sí, con la app Atajos de iOS:</p>
+    <ol>
+      <li>Abrí Atajos → <strong>+</strong> → Agregar acción → <strong>Abrir URL</strong>.</li>
+      <li>Escribí <code>gastito://anotar</code> (o, por ejemplo,
+      <code>gastito://anotar?categoria=super&amp;nota=Verdulería</code>).</li>
+      <li>Ponele un nombre, como «Anotar gasto», y agregalo a la pantalla de inicio, al Centro de control o
+      al botón de Acción del iPhone.</li>
+    </ol>
+    <p>También funcionan <code>gastito://resumen</code>, <code>gastito://movimientos</code> y
+    <code>gastito://fijos</code>. Un atajo nunca anota nada solo: abre el formulario y vos confirmás.</p>
+  </details>
+
+  <details>
+    <summary>Borré un gasto sin querer</summary>
+    <p>Justo después de borrarlo aparece un aviso arriba con <strong>Deshacer</strong>. Si ya se fue, y
+    tenías un backup, podés importarlo.</p>
+  </details>
+
+  <details>
+    <summary>¿Cómo borro todos mis datos?</summary>
+    <p>Ajustes → <strong>Borrar todo</strong>. También se borran si eliminás la app.</p>
+  </details>
+
+  <details>
+    <summary>¿Gastito es accesible?</summary>
+    <p>Funciona con VoiceOver (incluidas las acciones de deslizar), respeta el tamaño de texto, «Reducir
+    movimiento», «Aumentar contraste» y «Reducir transparencia», y tiene modo oscuro.</p>
+  </details>
+</article>
+<nav><a href="privacidad">Privacidad</a> · <a href="terminos">Términos de uso</a></nav>
+</main>
+</body>
+</html>

@@ -52,10 +52,12 @@
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "test": "jest",
+    "verify": "npm run typecheck && npm run lint && npm test",
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "doctor": "npx expo-doctor",
     "build:ios": "npx eas-cli@latest build --platform ios --profile production",
-    "submit:ios": "npx eas-cli@latest submit --platform ios --latest"
+    "submit:ios": "npx eas-cli@latest submit --platform ios --latest",
+    "check:release": "node scripts/check-release.mjs"
   },
   "private": true,
   "jest": {
