@@ -17,6 +17,8 @@ import { MovementsView } from '@/features/movements/MovementsView';
 import { SheetHost } from '@/features/sheets/SheetHost';
 import { SummaryView } from '@/features/summary/SummaryView';
 import { useAppState } from '@/state/AppStateProvider';
+import { useIncomingLinks } from '@/state/useIncomingLinks';
+import { useReminderSync } from '@/state/useReminderSync';
 import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { makeStyles, PAD } from '@/theme';
@@ -32,6 +34,9 @@ export function HomeScreen() {
   const scroll = useRef<ScrollView>(null);
   const previousView = useRef(ui.view);
   const enter = useSharedValue(1);
+
+  useReminderSync();
+  useIncomingLinks(true);
 
   // cada toque en una pestaña vuelve arriba de todo; si cambió la sección, entra con un fundido
   useEffect(() => {

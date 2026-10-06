@@ -28,7 +28,7 @@ export function SheetHost() {
       {request.kind === 'settings' ? (
         <SettingsSheet key={instance} />
       ) : (
-        <ExpenseSheet key={instance} expense={snapshot.expense} />
+        <ExpenseSheet key={instance} expense={snapshot.expense} prefill={request.prefill} />
       )}
     </BottomSheet>
   );

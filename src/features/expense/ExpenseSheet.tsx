@@ -13,6 +13,7 @@ import {
   MAX_NOTE_LENGTH,
   isPaymentMethod,
 } from '@/domain/catalog';
+import type { ExpensePrefill } from '@/domain/links';
 import type { Expense, PaymentMethod } from '@/domain/types';
 import { currentMonth, today, type DateKey } from '@/lib/dates';
 import { haptics } from '@/lib/haptics';
@@ -29,7 +30,7 @@ import { NewCategoryForm } from './NewCategoryForm';
 import { RepeatToggle } from './RepeatToggle';
 
 /** Formulario para anotar un gasto nuevo o editar uno existente. */
-export function ExpenseSheet({ expense }: { expense: Expense | null }) {
+export function ExpenseSheet({ expense, prefill }: { expense: Expense | null; prefill?: ExpensePrefill }) {
   const { ui } = useAppState();
   const actions = useAppActions();
   const sheet = useSheet();
@@ -37,11 +38,16 @@ export function ExpenseSheet({ expense }: { expense: Expense | null }) {
   const categories = useCategories();
   const reveal = useRevealInSheet();
 
-  const [amount, setAmount] = useState(() => (expense ? amountToInput(expense.amount) : ''));
-  const [categoryId, setCategoryId] = useState(
-    () => expense?.categoryId ?? (ui.filter !== ALL_FILTER ? ui.filter : DEFAULT_CATEGORY_ID),
+  const [amount, setAmount] = useState(() =>
+    expense ? amountToInput(expense.amount) : prefill?.amount ? amountToInput(prefill.amount) : '',
   );
-  const [note, setNote] = useState(expense?.note ?? '');
+  const [categoryId, setCategoryId] = useState(
+    () =>
+      expense?.categoryId ??
+      prefill?.categoryId ??
+      (ui.filter !== ALL_FILTER && categories.all.some((c) => c.id === ui.filter) ? ui.filter : DEFAULT_CATEGORY_ID),
+  );
+  const [note, setNote] = useState(expense?.note ?? prefill?.note ?? '');
   const [date, setDate] = useState<DateKey>(
     () => expense?.date ?? (ui.month === currentMonth() ? today() : `${ui.month}-01`),
   );

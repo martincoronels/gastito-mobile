@@ -28,6 +28,7 @@ import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { useCategories } from '@/state/useCategories';
 import { makeStyles, useTheme } from '@/theme';
+import { ReminderSettings } from './ReminderSettings';
 import { SettingsBlock, SettingsRow, SettingsSection } from './SettingsList';
 
 const APPEARANCE_OPTIONS: readonly { value: AppearancePreference; label: string }[] = [
@@ -160,6 +161,8 @@ export function SettingsSheet() {
           />
         </SettingsBlock>
       </SettingsSection>
+
+      <ReminderSettings />
 
       <SettingsSection
         title="Tus datos"

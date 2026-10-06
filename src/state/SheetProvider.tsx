@@ -1,10 +1,14 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Keyboard } from 'react-native';
 
-export type SheetRequest = { kind: 'expense'; expenseId: string | null } | { kind: 'settings' };
+import type { ExpensePrefill } from '@/domain/links';
+
+export type SheetRequest =
+  { kind: 'expense'; expenseId: string | null; prefill?: ExpensePrefill } | { kind: 'settings' };
 
 interface SheetApi {
-  openExpense: (expenseId?: string | null) => void;
+  /** Abre el formulario: para editar un gasto (con su id) o para uno nuevo (opcionalmente precargado) */
+  openExpense: (expenseId?: string | null, prefill?: ExpensePrefill) => void;
   openSettings: () => void;
   close: () => void;
 }
@@ -35,7 +39,7 @@ export function SheetProvider({ children }: { children: ReactNode }) {
       setOpen(true);
     };
     return {
-      openExpense: (expenseId = null) => show({ kind: 'expense', expenseId }),
+      openExpense: (expenseId = null, prefill) => show({ kind: 'expense', expenseId, prefill }),
       openSettings: () => show({ kind: 'settings' }),
       close: () => {
         isOpen.current = false;
