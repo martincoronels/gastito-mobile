@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
+import type { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -33,6 +34,13 @@ export function FixedView() {
   const monthTotal = sumOf(expensesInMonth(data, ui.month));
   const fixedInMonth = fixedTotalIn(data, ui.month);
 
+  // una sola fila abierta a la vez
+  const openRow = useRef<SwipeableMethods | null>(null);
+  const onSwipeOpen = useCallback((row: SwipeableMethods) => {
+    if (openRow.current && openRow.current !== row) openRow.current.close();
+    openRow.current = row;
+  }, []);
+
   return (
     <View style={styles.section}>
       <SectionHeader title="Gastos fijos" side={`${active.length} activos`} />
@@ -56,6 +64,7 @@ export function FixedView() {
               due={pending.some((p) => p.id === rule.id)}
               onToggle={() => actions.toggleFixed(rule.id)}
               onDelete={() => actions.deleteFixed(rule.id)}
+              onSwipeOpen={onSwipeOpen}
             />
           ))}
         </View>

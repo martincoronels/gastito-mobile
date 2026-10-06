@@ -15,6 +15,7 @@ import {
 } from '@/domain/catalog';
 import type { Expense, PaymentMethod } from '@/domain/types';
 import { currentMonth, today, type DateKey } from '@/lib/dates';
+import { haptics } from '@/lib/haptics';
 import { amountToInput, parseAmount } from '@/lib/money';
 import { useAppState } from '@/state/AppStateProvider';
 import { useSheet } from '@/state/SheetProvider';
@@ -64,6 +65,7 @@ export function ExpenseSheet({ expense }: { expense: Expense | null }) {
   const save = () => {
     const value = parseAmount(amount);
     if (!(value > 0)) {
+      haptics.error();
       amountInput.current?.focus();
       toast('Poné un monto mayor a cero');
       return;

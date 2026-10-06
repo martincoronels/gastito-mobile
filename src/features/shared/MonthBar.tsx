@@ -3,27 +3,37 @@ import { Pressable, View } from 'react-native';
 import { AppText } from '@/components/ui/AppText';
 import { IconButton } from '@/components/ui/IconButton';
 import { currentMonth, monthTitle, shiftMonth } from '@/lib/dates';
+import { haptics } from '@/lib/haptics';
 import { useAppState } from '@/state/AppStateProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { fonts, makeStyles } from '@/theme';
 
-/** "‹ Octubre de 2026 ›" con el atajo "Hoy" cuando se está mirando otro mes. */
+/**
+ * "‹ Octubre de 2026 ›" con el atajo "Hoy" cuando se está mirando otro mes. Con VoiceOver, el
+ * título es ajustable: deslizar hacia arriba o abajo cambia de mes.
+ */
 export function MonthBar() {
   const styles = useStyles();
   const { ui } = useAppState();
   const actions = useAppActions();
   const now = currentMonth();
   const canGoForward = shiftMonth(ui.month, 1) <= now;
+  const go = (delta: number) => {
+    if (delta > 0 && !canGoForward) return;
+    haptics.selection();
+    actions.shiftMonth(delta);
+  };
   return (
     <View style={styles.bar}>
-      <IconButton
-        icon="left"
-        size={34}
-        iconSize={19}
-        onPress={() => actions.shiftMonth(-1)}
-        accessibilityLabel="Mes anterior"
-      />
-      <AppText style={styles.title} accessibilityRole="header">
+      <IconButton icon="left" size={34} iconSize={19} onPress={() => go(-1)} accessibilityLabel="Mes anterior" />
+      <AppText
+        style={styles.title}
+        accessibilityRole="adjustable"
+        accessibilityLabel="Mes"
+        accessibilityValue={{ text: monthTitle(ui.month) }}
+        accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+        onAccessibilityAction={(e) => go(e.nativeEvent.actionName === 'increment' ? 1 : -1)}
+      >
         {monthTitle(ui.month)}
       </AppText>
       <IconButton
@@ -31,12 +41,15 @@ export function MonthBar() {
         size={34}
         iconSize={19}
         disabled={!canGoForward}
-        onPress={() => actions.shiftMonth(1)}
+        onPress={() => go(1)}
         accessibilityLabel="Mes siguiente"
       />
       {ui.month !== now ? (
         <Pressable
-          onPress={() => actions.goToMonth(now)}
+          onPress={() => {
+            haptics.selection();
+            actions.goToMonth(now);
+          }}
           accessibilityRole="button"
           accessibilityLabel="Volver al mes actual"
           style={({ pressed }) => [styles.today, pressed && styles.todayPressed]}

@@ -6,13 +6,27 @@ import {
   applyPendingFixed,
   createCategory,
   deleteCategory,
+  deleteExpense,
   deleteFixed,
+  duplicateExpense,
   emptyData,
+  isEmptyData,
+  restoreExpense,
+  restoreFixed,
   saveExpense,
   toggleFixed,
 } from '../operations';
 import { sanitizeData } from '../sanitize';
-import { filterMovements, groupByDay, impactMessage, monthSummary, pendingFixed, totalsByCategory } from '../selectors';
+import {
+  budgetAlert,
+  filterMovements,
+  groupByDay,
+  impactMessage,
+  monthSummary,
+  pendingFixed,
+  totalsByCategory,
+  unregisteredFixed,
+} from '../selectors';
 import type { AppData, Expense, RecurringExpense } from '../types';
 
 jest.mock('@/lib/ids', () => ({ uid: () => `id_${Math.random().toString(36).slice(2, 10)}` }));
@@ -90,21 +104,82 @@ describe('consultas', () => {
     ]);
   });
 
-  it('compara con el mes pasado al anotar', () => {
+  it('al anotar en el mes en curso, compara con lo que iba a esta altura del mes pasado', () => {
     const d = data({
-      expenses: [expense({ date: '2026-09-10', amount: 1000 }), expense({ date: '2026-10-01', amount: 1500 })],
+      expenses: [
+        expense({ date: '2026-09-03', amount: 1000 }),
+        expense({ date: '2026-09-20', amount: 9000 }), // después del día 5: no cuenta
+        expense({ date: '2026-10-01', amount: 1500 }),
+      ],
     });
-    expect(impactMessage(d, d.expenses[1], lookup.get('comida'))).toBe(
-      'Van $\u00a01.500 en comida y delivery · +50% que el mes pasado',
+    expect(impactMessage(d, d.expenses[2], lookup.get('comida'), NOW)).toBe(
+      'Van $\u00a01.500 en comida y delivery · +50% que a esta altura del mes pasado',
     );
   });
 
-  it('resume el mes', () => {
+  it('al anotar en un mes pasado, compara con el mes anterior completo', () => {
     const d = data({
-      expenses: [expense({ date: '2026-10-01', amount: 5000 }), expense({ date: '2026-09-01', amount: 2000 })],
+      expenses: [expense({ date: '2026-08-25', amount: 1000 }), expense({ date: '2026-09-02', amount: 1500 })],
+    });
+    expect(impactMessage(d, d.expenses[1], lookup.get('comida'), NOW)).toBe(
+      'Van $\u00a01.500 en comida y delivery · +50% que el mes anterior',
+    );
+    const alone = data({ expenses: [expense({ date: '2026-10-02', amount: 700 })] });
+    expect(impactMessage(alone, alone.expenses[0], lookup.get('comida'), NOW)).toBe(
+      'Anotado. Van $\u00a0700 en comida y delivery este mes',
+    );
+  });
+
+  it('resume el mes comparando a esta altura del mes pasado', () => {
+    const d = data({
+      expenses: [
+        expense({ date: '2026-10-01', amount: 5000 }),
+        expense({ date: '2026-09-01', amount: 2000 }),
+        expense({ date: '2026-09-28', amount: 8000 }),
+      ],
     });
     const s = monthSummary(d, '2026-10', NOW);
-    expect([s.sum, s.previousSum, s.elapsedDays, s.perDay, s.isCurrent]).toEqual([5000, 2000, 5, 1000, true]);
+    expect([s.sum, s.previousSum, s.previousComparable, s.elapsedDays, s.perDay, s.isCurrent]).toEqual([
+      5000,
+      10000,
+      2000,
+      5,
+      1000,
+      true,
+    ]);
+    expect(s.change).toBe(150);
+    // un mes pasado se compara contra el anterior completo
+    const past = monthSummary(d, '2026-09', NOW);
+    expect([past.previousComparable, past.change, past.projection]).toEqual([0, null, 10000]);
+  });
+
+  it('el cierre estimado suma los fijos del mes y proyecta solo lo variable', () => {
+    const rent = rule({ id: 'alquiler', amount: 300000, day: 1, categoryId: 'hogar' });
+    const gym = rule({ id: 'gym', amount: 20000, day: 15, categoryId: 'salud' });
+    const d = data({
+      recurring: [rent, gym],
+      expenses: [
+        expense({ date: '2026-10-01', amount: 300000, recurringId: 'alquiler' }),
+        expense({ date: '2026-10-02', amount: 5000 }),
+        expense({ date: '2026-10-04', amount: 5000 }),
+      ],
+    });
+    const s = monthSummary(d, '2026-10', NOW);
+    expect(s.upcomingFixed).toBe(20000);
+    // 300.000 + 20.000 de fijos + (10.000 / 5 días) × 31 días
+    expect(s.projection).toBe(300000 + 20000 + 2000 * 31);
+    expect(unregisteredFixed(d, '2026-10', NOW).map((r) => r.id)).toEqual(['gym']);
+    expect(unregisteredFixed(d, '2026-09', NOW)).toEqual([]);
+  });
+
+  it('avisa del presupuesto solo al cruzar el 80% o el 100%', () => {
+    expect(budgetAlert(70000, 85000, 100000)).toEqual({ level: 'near', left: 15000 });
+    expect(budgetAlert(85000, 90000, 100000)).toBeNull();
+    expect(budgetAlert(90000, 101000, 100000)).toEqual({ level: 'over', left: -1000 });
+    expect(budgetAlert(50000, 120000, 100000)).toEqual({ level: 'over', left: -20000 });
+    expect(budgetAlert(101000, 105000, 100000)).toBeNull();
+    expect(budgetAlert(0, 50000, null)).toBeNull();
+    expect(budgetAlert(90000, 80000, 100000)).toBeNull();
   });
 });
 
@@ -178,6 +253,44 @@ describe('operaciones', () => {
     const thisMonth = demo.expenses.filter((e) => e.date.startsWith('2026-10'));
     expect(thisMonth.every((e) => Number(e.date.slice(8)) <= 5)).toBe(true);
     expect(pendingFixed(demo, '2026-09', NOW)).toHaveLength(0);
+  });
+});
+
+describe('deshacer y duplicar', () => {
+  it('un gasto borrado vuelve tal cual, una sola vez', () => {
+    const r = rule();
+    const e = expense({ recurringId: r.id });
+    const d = data({ recurring: [r], expenses: [e] });
+    const restored = restoreExpense(deleteExpense(d, e.id), e);
+    expect(restored.expenses).toEqual([e]);
+    expect(restoreExpense(restored, e).expenses).toHaveLength(1);
+    // si el fijo ya no existe, vuelve suelto
+    expect(restoreExpense(data({ expenses: [] }), e).expenses[0].recurringId).toBeNull();
+  });
+
+  it('un fijo borrado vuelve y se reengancha con sus gastos', () => {
+    const r = rule();
+    const e = expense({ recurringId: r.id });
+    const other = expense();
+    const d = data({ recurring: [r], expenses: [e, other] });
+    const back = restoreFixed(deleteFixed(d, r.id), r, [e.id]);
+    expect(back.recurring).toEqual([r]);
+    expect(back.expenses.find((x) => x.id === e.id)?.recurringId).toBe(r.id);
+    expect(back.expenses.find((x) => x.id === other.id)?.recurringId).toBeNull();
+    expect(restoreFixed(back, r, [e.id]).recurring).toHaveLength(1);
+  });
+
+  it('anotar otra vez copia el gasto con otra fecha y sin fijo', () => {
+    const e = expense({ amount: 2500, note: 'Café', recurringId: 'r1', date: '2026-09-02' });
+    const { data: next, expense: copy } = duplicateExpense(data({ expenses: [e] }), e, '2026-10-05', 99, nextId);
+    expect(next.expenses).toHaveLength(2);
+    expect(copy).toMatchObject({ amount: 2500, note: 'Café', date: '2026-10-05', createdAt: 99, recurringId: null });
+    expect(copy.id).not.toBe(e.id);
+  });
+
+  it('sabe cuándo no quedó nada', () => {
+    expect(isEmptyData(emptyData())).toBe(true);
+    expect(isEmptyData(data({ expenses: [expense()] }))).toBe(false);
   });
 });
 

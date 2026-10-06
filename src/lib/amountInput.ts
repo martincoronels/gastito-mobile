@@ -56,3 +56,16 @@ export function nextAmountInput(prev: string, next: string): AmountEdit {
   const keep = (s: string) => s.replace(/\./g, '');
   return { ok: true, value: normalizeAmount(keep(before) + typed + keep(after)) };
 }
+
+/** Para montos enteros (el presupuesto): solo dígitos, con puntos de miles. "600000" → "600.000". */
+export function wholeAmountInput(text: string): string {
+  // si se pegó un monto con centavos, los centavos no cuentan
+  const digits = text.split(',')[0].replace(/\D/g, '').replace(/^0+/, '').slice(0, 12);
+  return digits ? formatInteger(Number(digits)) : '';
+}
+
+/** El número de un campo armado con wholeAmountInput; null si está vacío o es cero. */
+export function parseWholeAmount(text: string): number | null {
+  const n = Number(text.replace(/\D/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppText } from '@/components/ui/AppText';
 import { Icon } from '@/components/ui/Icon';
 import type { IconName } from '@/components/ui/icons';
+import { haptics } from '@/lib/haptics';
 import type { ViewId } from '@/state/reducer';
 import { makeStyles, useTheme } from '@/theme';
 
@@ -30,7 +31,10 @@ export function BottomNav({ current, onChange }: { current: ViewId; onChange: (v
           label={tab.label}
           icon={tab.icon}
           active={tab.id === current}
-          onPress={() => onChange(tab.id)}
+          onPress={() => {
+            if (tab.id !== current) haptics.selection();
+            onChange(tab.id);
+          }}
         />
       ))}
     </View>

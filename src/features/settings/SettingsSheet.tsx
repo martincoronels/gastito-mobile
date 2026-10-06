@@ -1,5 +1,6 @@
+import * as Application from 'expo-application';
 import * as WebBrowser from 'expo-web-browser';
-import { useRef, useState, type ReactNode } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, View, type TextInput } from 'react-native';
 
 import { CategoryChip } from '@/components/CategoryChip';
@@ -7,14 +8,19 @@ import { useToast } from '@/components/feedback/ToastProvider';
 import { useRevealInSheet } from '@/components/sheet/BottomSheet';
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
-import { FieldLabel } from '@/components/ui/FieldLabel';
 import { Icon } from '@/components/ui/Icon';
 import { Segmented } from '@/components/ui/Segmented';
 import { TextField } from '@/components/ui/TextField';
-import { PRIVACY_POLICY_URL } from '@/config';
+import { PRIVACY_POLICY_URL, SUPPORT_URL, TERMS_URL } from '@/config';
 import { monthCsv } from '@/domain/csv';
+import { isEmptyData } from '@/domain/operations';
 import type { AppearancePreference } from '@/domain/preferences';
-import { today } from '@/lib/dates';
+import type { Category } from '@/domain/types';
+import { parseWholeAmount, wholeAmountInput } from '@/lib/amountInput';
+import { confirm } from '@/lib/confirm';
+import { monthName, today } from '@/lib/dates';
+import { formatInteger } from '@/lib/money';
+import { plural } from '@/lib/text';
 import { exportBackup, exportMonthCsv, pickBackup } from '@/services/backup';
 import { useAppState } from '@/state/AppStateProvider';
 import { usePreferences } from '@/state/PreferencesProvider';
@@ -22,6 +28,7 @@ import { useSheet } from '@/state/SheetProvider';
 import { useAppActions } from '@/state/useAppActions';
 import { useCategories } from '@/state/useCategories';
 import { makeStyles, useTheme } from '@/theme';
+import { SettingsBlock, SettingsRow, SettingsSection } from './SettingsList';
 
 const APPEARANCE_OPTIONS: readonly { value: AppearancePreference; label: string }[] = [
   { value: 'system', label: 'Automática' },
@@ -29,9 +36,18 @@ const APPEARANCE_OPTIONS: readonly { value: AppearancePreference; label: string 
   { value: 'dark', label: 'Oscura' },
 ];
 
-/** Ajustes: presupuesto, backups, categorías propias, privacidad y borrar todo. */
+/** Colores de los íconos de cada fila (los de las categorías, como los íconos de Ajustes de iOS). */
+const TINT = {
+  export: '#2D5FD1',
+  csv: '#0E8579',
+  import: '#D2851B',
+  privacy: '#6E7A72',
+  terms: '#7A5C33',
+  support: '#1481A8',
+} as const;
+
+/** Ajustes: presupuesto, apariencia, tus datos, privacidad y acerca de. */
 export function SettingsSheet() {
-  const { colors } = useTheme();
   const styles = useStyles();
   const { data, ui } = useAppState();
   const actions = useAppActions();
@@ -41,15 +57,11 @@ export function SettingsSheet() {
   const reveal = useRevealInSheet();
   const { prefs, update } = usePreferences();
   const budgetInput = useRef<TextInput>(null);
-
-  const [budget, setBudget] = useState(data.settings.budget ? String(data.settings.budget) : '');
-  const [armedCategory, setArmedCategory] = useState<string | null>(null);
-  const [wipeArmed, setWipeArmed] = useState(false);
+  const [budget, setBudget] = useState(data.settings.budget ? formatInteger(data.settings.budget) : '');
 
   const saveBudget = () => {
-    const value = parseFloat(budget);
-    actions.saveBudget(Number.isFinite(value) && value > 0 ? value : null);
-    sheet.close();
+    actions.saveBudget(parseWholeAmount(budget));
+    budgetInput.current?.blur();
   };
 
   const run = (task: () => Promise<void>) => () => {
@@ -64,165 +76,196 @@ export function SettingsSheet() {
     ),
   );
   const importJson = run(async () => {
+    if (!isEmptyData(data)) {
+      const ok = await confirm({
+        title: '¿Reemplazar tus datos?',
+        message: `Lo que tengas ahora (${plural(data.expenses.length, 'gasto', 'gastos')}) se reemplaza por lo del backup. Si querés, exportá antes una copia.`,
+        confirmLabel: 'Elegir backup',
+      });
+      if (!ok) return;
+    }
     const picked = await pickBackup();
     if (picked.status === 'canceled') return;
     if (picked.status === 'too-large') toast('Ese archivo es demasiado grande para ser un backup de Gastito');
     else if (picked.status === 'unreadable') toast('Ese archivo no es un backup de Gastito');
     else if (actions.importBackup(picked.json)) sheet.close();
   });
-  const openPrivacy = run(async () => {
-    await WebBrowser.openBrowserAsync(PRIVACY_POLICY_URL);
-  });
+  const open = (url: string) =>
+    run(async () => {
+      await WebBrowser.openBrowserAsync(url, { presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET });
+    });
 
-  // borrar pide un segundo toque, como en la web
-  const deleteCategory = (id: string) => {
-    if (armedCategory !== id) {
-      setArmedCategory(id);
-      toast('Tocá de nuevo para borrar la categoría');
-      return;
-    }
-    setArmedCategory(null);
-    actions.deleteCategory(id);
+  const deleteCategory = async (category: Category) => {
+    const count = data.expenses.filter((e) => e.categoryId === category.id).length;
+    const ok = await confirm({
+      title: `¿Borrar «${category.name}»?`,
+      message: count
+        ? `${plural(count, 'gasto pasa', 'gastos pasan')} a «Otros». No se borra ningún gasto.`
+        : 'No tiene gastos anotados.',
+      confirmLabel: 'Borrar',
+      destructive: true,
+    });
+    if (ok) actions.deleteCategory(category.id);
   };
-  const wipe = () => {
-    if (!wipeArmed) {
-      setWipeArmed(true);
-      toast('Tocá de nuevo para borrar todo');
-      return;
-    }
+
+  const wipe = async () => {
+    const ok = await confirm({
+      title: '¿Borrar todo?',
+      message: 'Se van los gastos, los fijos, tus categorías y el presupuesto de este iPhone.',
+      confirmLabel: 'Borrar todo',
+      destructive: true,
+    });
+    if (!ok) return;
     actions.wipeAll();
     sheet.close();
   };
 
+  const version = [Application.nativeApplicationVersion, Application.nativeBuildVersion].filter(Boolean);
+
   return (
-    <View>
-      <View style={styles.field}>
-        <FieldLabel>Presupuesto mensual (dejalo vacío si no querés uno)</FieldLabel>
-        <TextField
-          ref={budgetInput}
-          value={budget}
-          onChangeText={(text) => setBudget(text.replace(/\D/g, ''))}
-          keyboardType="number-pad"
-          placeholder="Ej: 600000"
-          returnKeyType="done"
-          onSubmitEditing={saveBudget}
-          onFocus={() => reveal(budgetInput.current)}
-        />
-      </View>
-      <Button label="Guardar presupuesto" wide onPress={saveBudget} />
+    <View style={styles.root}>
+      <SettingsSection
+        title="Presupuesto mensual"
+        footer="Te avisamos al llegar al 80% y al pasarte. Dejalo vacío si no querés uno."
+      >
+        <SettingsBlock>
+          <View style={styles.budgetRow}>
+            <View style={styles.budgetField}>
+              <AppText style={styles.currency}>$</AppText>
+              <TextField
+                ref={budgetInput}
+                value={budget}
+                onChangeText={(text) => setBudget(wholeAmountInput(text))}
+                keyboardType="number-pad"
+                placeholder="600.000"
+                returnKeyType="done"
+                accessibilityLabel="Presupuesto mensual"
+                onSubmitEditing={saveBudget}
+                onFocus={() => reveal(budgetInput.current)}
+                style={styles.budgetInput}
+              />
+            </View>
+            <Button label="Guardar" size="sm" onPress={saveBudget} />
+          </View>
+        </SettingsBlock>
+      </SettingsSection>
 
-      <View style={styles.appearance}>
-        <FieldLabel>Apariencia</FieldLabel>
-        <Segmented
-          accessibilityLabel="Apariencia"
-          options={APPEARANCE_OPTIONS}
-          value={prefs.appearance}
-          onChange={(appearance) => update((p) => ({ ...p, appearance }))}
-        />
-      </View>
+      <SettingsSection title="Apariencia">
+        <SettingsBlock>
+          <Segmented
+            accessibilityLabel="Apariencia"
+            options={APPEARANCE_OPTIONS}
+            value={prefs.appearance}
+            onChange={(appearance) => update((p) => ({ ...p, appearance }))}
+          />
+        </SettingsBlock>
+      </SettingsSection>
 
-      <View style={styles.rows}>
-        <SettingRow
-          title="Exportar datos"
-          text="Un archivo JSON con todo. Sirve de backup y para mudarte a otro dispositivo."
-          action={<Button variant="ghost" size="sm" label="Descargar" onPress={exportJson} />}
+      <SettingsSection
+        title="Tus datos"
+        footer="Viven en esta app, en este iPhone: nadie más los ve. Si desinstalás Gastito se borran, así que exportá de vez en cuando."
+      >
+        <SettingsRow
+          icon="share"
+          tint={TINT.export}
+          title="Exportar backup"
+          detail="Un archivo con todo, para guardar o pasar a otro iPhone"
+          accessory="none"
+          onPress={exportJson}
         />
-        <SettingRow
-          title="Exportar el mes en CSV"
-          text="Para abrirlo en Excel o Google Sheets."
-          action={<Button variant="ghost" size="sm" label="Descargar" onPress={exportCsv} />}
+        <SettingsRow
+          icon="doc"
+          tint={TINT.csv}
+          title={`Exportar ${monthName(ui.month)} en CSV`}
+          detail="Para abrirlo en Excel, Numbers o Google Sheets"
+          accessory="none"
+          onPress={exportCsv}
         />
-        <SettingRow
-          title="Importar datos"
-          text="Reemplaza lo que tengas cargado ahora."
-          action={<Button variant="ghost" size="sm" label="Elegir archivo" onPress={importJson} />}
+        <SettingsRow
+          icon="tray"
+          tint={TINT.import}
+          title="Importar backup"
+          detail="Reemplaza lo que tengas cargado"
+          accessory="none"
+          onPress={importJson}
         />
-        {categories.custom.length ? (
-          <View style={[styles.block, styles.divider]}>
-            <AppText style={styles.rowTitle}>Mis categorías</AppText>
-            <AppText style={styles.rowText}>Las que creaste vos. Si borrás una, sus gastos pasan a “Otros”.</AppText>
+      </SettingsSection>
+
+      {categories.custom.length ? (
+        <SettingsSection title="Mis categorías" footer="Si borrás una, sus gastos pasan a «Otros».">
+          <SettingsBlock>
             <View style={styles.myCategories}>
               {categories.custom.map((category) => (
-                <View key={category.id} style={styles.myCategory}>
-                  <CategoryChip category={category} size={26} iconSize={14} />
-                  <AppText style={styles.myCategoryName}>{category.name}</AppText>
-                  <Pressable
-                    onPress={() => deleteCategory(category.id)}
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Borrar ${category.name}`}
-                    style={({ pressed }) => [styles.remove, pressed && styles.removePressed]}
-                  >
-                    <Icon
-                      name="close"
-                      size={13}
-                      color={armedCategory === category.id ? colors.dangerInk : colors.ink3}
-                    />
-                  </Pressable>
-                </View>
+                <MyCategory key={category.id} category={category} onDelete={() => void deleteCategory(category)} />
               ))}
             </View>
-          </View>
-        ) : null}
-        <SettingRow
+          </SettingsBlock>
+        </SettingsSection>
+      ) : null}
+
+      <SettingsSection title="Privacidad">
+        <SettingsRow
+          icon="shield"
+          tint={TINT.privacy}
           title="Política de privacidad"
-          text="Qué datos usa Gastito y dónde quedan guardados."
-          action={<Button variant="ghost" size="sm" label="Ver" onPress={openPrivacy} />}
+          detail="Qué datos usa Gastito y dónde quedan"
+          onPress={open(PRIVACY_POLICY_URL)}
         />
-        <SettingRow
-          last
-          title="Borrar todo"
-          text="Se van los gastos, los fijos y el presupuesto. No hay vuelta atrás."
-          action={<Button variant="danger" size="sm" label={wipeArmed ? 'Confirmar' : 'Borrar'} onPress={wipe} />}
+        <SettingsRow icon="doc" tint={TINT.terms} title="Términos de uso" onPress={open(TERMS_URL)} />
+      </SettingsSection>
+
+      <SettingsSection title="Ayuda">
+        <SettingsRow
+          icon="help"
+          tint={TINT.support}
+          title="Soporte y preguntas frecuentes"
+          onPress={open(SUPPORT_URL)}
         />
-      </View>
-      <AppText style={styles.note}>
-        Tus datos viven en esta app, en este dispositivo. Nadie más los ve. Si desinstalás la app, se borran: exportá de
-        vez en cuando.
+      </SettingsSection>
+
+      <SettingsSection>
+        <SettingsRow title="Borrar todo" destructive accessory="none" onPress={() => void wipe()} />
+      </SettingsSection>
+
+      <AppText style={styles.version}>
+        Gastito{version.length ? ` ${version[0]}${version[1] ? ` (${version[1]})` : ''}` : ''}
       </AppText>
     </View>
   );
 }
 
-function SettingRow({
-  title,
-  text,
-  action,
-  last = false,
-}: {
-  title: string;
-  text: string;
-  action: ReactNode;
-  last?: boolean;
-}) {
+function MyCategory({ category, onDelete }: { category: Category; onDelete: () => void }) {
+  const { colors } = useTheme();
   const styles = useStyles();
   return (
-    <View style={[styles.row, !last && styles.divider]}>
-      <View style={styles.rowTexts}>
-        <AppText style={styles.rowTitle}>{title}</AppText>
-        <AppText style={styles.rowText}>{text}</AppText>
-      </View>
-      {action}
+    <View style={styles.myCategory}>
+      <CategoryChip category={category} size={26} iconSize={14} />
+      <AppText style={styles.myCategoryName}>{category.name}</AppText>
+      <Pressable
+        onPress={onDelete}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={`Borrar ${category.name}`}
+        style={({ pressed }) => [styles.remove, pressed && styles.removePressed]}
+      >
+        <Icon name="close" size={13} color={colors.ink3} />
+      </Pressable>
     </View>
   );
 }
 
 const useStyles = makeStyles((c) => ({
-  field: { marginBottom: 15 },
-  appearance: { marginTop: 22 },
-  rows: { marginTop: 14 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 2 },
-  block: { paddingVertical: 14, paddingHorizontal: 2 },
-  divider: { borderBottomWidth: 1, borderBottomColor: c.lineSoft },
-  rowTexts: { flex: 1 },
-  rowTitle: { fontSize: 14.5, lineHeight: 21 },
-  rowText: { fontSize: 12.5, lineHeight: 18.1, color: c.ink3, marginTop: 2, maxWidth: 290 },
-  myCategories: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 10 },
+  root: { marginTop: -10 },
+  budgetRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  budgetField: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
+  currency: { position: 'absolute', left: 13, zIndex: 1, fontSize: 16, color: c.ink3 },
+  budgetInput: { flex: 1, minWidth: 0, paddingLeft: 28, fontVariant: ['tabular-nums'] },
+  myCategories: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   myCategory: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 7,
-    backgroundColor: c.soft,
+    backgroundColor: c.surface,
     borderRadius: 999,
     paddingVertical: 4,
     paddingLeft: 4,
@@ -231,5 +274,5 @@ const useStyles = makeStyles((c) => ({
   myCategoryName: { fontSize: 12.5 },
   remove: { width: 20, height: 20, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   removePressed: { backgroundColor: c.softPressed },
-  note: { fontSize: 12.5, lineHeight: 18.1, color: c.ink3, marginTop: 14 },
+  version: { fontSize: 12, color: c.ink3, textAlign: 'center', marginTop: 22 },
 }));

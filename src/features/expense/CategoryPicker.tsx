@@ -5,6 +5,7 @@ import { AppText } from '@/components/ui/AppText';
 import { useGridColumns } from '@/components/ui/grid';
 import { Icon } from '@/components/ui/Icon';
 import type { Category } from '@/domain/types';
+import { haptics } from '@/lib/haptics';
 import { makeStyles, useTheme } from '@/theme';
 
 interface CategoryPickerProps {
@@ -26,7 +27,10 @@ export function CategoryPicker({ categories, selected, onSelect, onCreate }: Cat
         return (
           <Pressable
             key={category.id}
-            onPress={() => onSelect(category.id)}
+            onPress={() => {
+              if (!on) haptics.selection();
+              onSelect(category.id);
+            }}
             accessibilityRole="button"
             accessibilityState={{ selected: on }}
             accessibilityLabel={category.name}

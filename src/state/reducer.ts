@@ -40,6 +40,12 @@ export type AppAction =
       animate?: boolean;
       ui?: Partial<Pick<UiState, 'month' | 'selected' | 'filter'>>;
     }
+  | {
+      /** Como dataChanged, pero se calcula sobre los datos del momento (para deshacer más tarde) */
+      type: 'dataUpdated';
+      update: (data: AppData) => AppData;
+      animate?: boolean;
+    }
   | { type: 'viewChanged'; view: ViewId; month?: MonthKey }
   | { type: 'monthChanged'; month: MonthKey }
   | { type: 'selectionToggled'; id: string }
@@ -78,6 +84,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         data: action.data,
         ui: { ...ui, ...action.ui, donutKey: action.animate ? ui.donutKey + 1 : ui.donutKey },
       };
+    case 'dataUpdated': {
+      const data = action.update(state.data);
+      if (data === state.data) return state;
+      return { ...state, data, ui: { ...ui, donutKey: action.animate ? ui.donutKey + 1 : ui.donutKey } };
+    }
     case 'viewChanged': {
       const month = action.month ?? ui.month;
       return {

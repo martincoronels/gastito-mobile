@@ -106,6 +106,28 @@ export const deleteExpense = (data: AppData, id: string): AppData => ({
   expenses: data.expenses.filter((e) => e.id !== id),
 });
 
+/**
+ * Deshace el borrado de un gasto: vuelve tal cual estaba. Si mientras tanto se borró su fijo, vuelve
+ * suelto; si ya está (se deshizo dos veces), no se duplica.
+ */
+export function restoreExpense(data: AppData, expense: Expense): AppData {
+  if (data.expenses.some((e) => e.id === expense.id)) return data;
+  const linked = expense.recurringId && data.recurring.some((r) => r.id === expense.recurringId);
+  return { ...data, expenses: [...data.expenses, { ...expense, recurringId: linked ? expense.recurringId : null }] };
+}
+
+/** "Anotar otra vez": el mismo gasto, en otra fecha (hoy), suelto aunque el original fuera de un fijo. */
+export function duplicateExpense(
+  data: AppData,
+  source: Expense,
+  date: DateKey,
+  now: number = Date.now(),
+  newId: IdFactory = uid,
+): { data: AppData; expense: Expense } {
+  const expense: Expense = { ...source, id: newId(), date, createdAt: now, recurringId: null };
+  return { data: { ...data, expenses: [...data.expenses, expense] }, expense };
+}
+
 /** Registra en el mes todos los fijos vencidos que faltaban. */
 export function applyPendingFixed(
   data: AppData,
@@ -139,6 +161,21 @@ export const deleteFixed = (data: AppData, id: string): AppData => ({
   recurring: data.recurring.filter((r) => r.id !== id),
   expenses: data.expenses.map((e) => (e.recurringId === id ? { ...e, recurringId: null } : e)),
 });
+
+/** Deshace el borrado de un fijo: vuelve, y se vuelven a enganchar los gastos que había generado. */
+export function restoreFixed(data: AppData, rule: RecurringExpense, linkedExpenseIds: readonly string[]): AppData {
+  if (data.recurring.some((r) => r.id === rule.id)) return data;
+  const linked = new Set(linkedExpenseIds);
+  return {
+    ...data,
+    recurring: [...data.recurring, rule],
+    expenses: data.expenses.map((e) => (linked.has(e.id) && !e.recurringId ? { ...e, recurringId: rule.id } : e)),
+  };
+}
+
+/** Sin gastos, fijos ni categorías propias (lo que queda después de "Borrar todo"). */
+export const isEmptyData = (data: AppData): boolean =>
+  !data.expenses.length && !data.recurring.length && !data.categories.length;
 
 export const setBudget = (data: AppData, budget: number | null): AppData => ({
   ...data,

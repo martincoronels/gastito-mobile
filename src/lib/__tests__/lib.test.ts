@@ -1,4 +1,4 @@
-import { nextAmountInput } from '../amountInput';
+import { nextAmountInput, parseWholeAmount, wholeAmountInput } from '../amountInput';
 import { dayLabel, daysInMonth, monthAbbr, monthTitle, shiftMonth, shortDate } from '../dates';
 import { amountToInput, money, moneyParts, parseAmount } from '../money';
 import { cleanText, firstGrapheme, firstGraphemeManual } from '../text';
@@ -53,6 +53,17 @@ describe('campo de monto', () => {
   it('limpia lo pegado y rechaza letras', () => {
     expect(nextAmountInput('', '$ 1.500,75')).toEqual({ ok: true, value: '1.500,75' });
     expect(nextAmountInput('12', '12a')).toEqual({ ok: false });
+  });
+});
+
+describe('presupuesto', () => {
+  it('pone los puntos de miles y descarta lo que no es número', () => {
+    expect(wholeAmountInput('600000')).toBe('600.000');
+    expect(wholeAmountInput('$ 1.250.000,50')).toBe('1.250.000');
+    expect(wholeAmountInput('00')).toBe('');
+    expect(parseWholeAmount('600.000')).toBe(600000);
+    expect(parseWholeAmount('')).toBeNull();
+    expect(parseWholeAmount('0')).toBeNull();
   });
 });
 

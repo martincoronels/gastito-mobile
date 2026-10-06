@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { View } from 'react-native';
+import type { SwipeableMethods } from 'react-native-gesture-handler/ReanimatedSwipeable';
 
 import { AppText } from '@/components/ui/AppText';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +17,7 @@ import { useAppActions } from '@/state/useAppActions';
 import { useCategories } from '@/state/useCategories';
 import { makeStyles, radius } from '@/theme';
 import { MonthBar } from '../shared/MonthBar';
+import { MonthSwipe } from '../shared/MonthSwipe';
 import { CategoryFilter } from './CategoryFilter';
 import { ExpenseRow } from './ExpenseRow';
 import { SearchField } from './SearchField';
@@ -37,9 +39,18 @@ export function MovementsView() {
   const groups = useMemo(() => groupByDay(results), [results]);
   const filtering = ui.query.trim() !== '' || ui.filter !== ALL_FILTER;
 
+  // una sola fila abierta a la vez, como en Mail
+  const openRow = useRef<SwipeableMethods | null>(null);
+  const onSwipeOpen = useCallback((row: SwipeableMethods) => {
+    if (openRow.current && openRow.current !== row) openRow.current.close();
+    openRow.current = row;
+  }, []);
+
   return (
     <View>
-      <MonthBar />
+      <MonthSwipe>
+        <MonthBar />
+      </MonthSwipe>
       <View style={styles.section}>
         <SearchField value={ui.query} onChange={actions.setQuery} />
         <CategoryFilter categories={chips} selected={ui.filter} onSelect={actions.setFilter} />
@@ -48,7 +59,9 @@ export function MovementsView() {
           groups.map((group) => (
             <View key={group.date} style={styles.day}>
               <View style={styles.dayHead}>
-                <AppText style={styles.dayLabel}>{dayLabel(group.date)}</AppText>
+                <AppText style={styles.dayLabel} accessibilityRole="header">
+                  {dayLabel(group.date)}
+                </AppText>
                 <AppText style={styles.dayTotal}>{money(group.total)}</AppText>
               </View>
               <View style={styles.list}>
@@ -59,6 +72,9 @@ export function MovementsView() {
                     category={categories.get(expense.categoryId)}
                     first={i === 0}
                     onPress={() => sheet.openExpense(expense.id)}
+                    onDelete={() => actions.deleteExpense(expense.id)}
+                    onDuplicate={() => actions.duplicateExpense(expense.id)}
+                    onSwipeOpen={onSwipeOpen}
                   />
                 ))}
               </View>
